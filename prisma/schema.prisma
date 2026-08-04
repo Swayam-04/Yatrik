@@ -1,0 +1,314 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TripStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id             String            @id @default(uuid())
+  clerkId        String            @unique
+  name           String
+  email          String            @unique
+  avatar         String?
+  role           Role              @default(USER)
+  coins          Int               @default(250)
+  level          Int               @default(1)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  trips          Trip[]
+  chats          Chat[]
+  reviews        Review[]
+  rewards        Reward[]
+  bookmarks      Bookmark[]
+  notifications  Notification[]
+  communityPosts CommunityPost[]
+  hiddenGems     HiddenGem[]
+  safetyReports  SafetyReport[]
+
+  @@index([clerkId])
+  @@index([email])
+}
+
+model Trip {
+  id             String          @id @default(uuid())
+  title          String
+  destination    String
+  coverImage     String?
+  startDate      String?
+  endDate        String?
+  budget         Float
+  spentTotal     Float           @default(0)
+  travelers      Int             @default(1)
+  travelType     String          @default("Solo")
+  transportMode  String          @default("Flight")
+  preferences    String[]        @default([])
+  status         TripStatus      @default(PLANNED)
+  createdBy      String
+  user           User            @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  itineraries    Itinerary[]
+  days           ItineraryDay[]
+  hotels         Hotel[]
+  restaurants    Restaurant[]
+  places         Place[]
+  chats          Chat[]
+  expenses       Expense[]
+
+  @@index([createdBy])
+  @@index([destination])
+}
+
+model Itinerary {
+  id          String   @id @default(uuid())
+  day         Int
+  title       String
+  description String?
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+}
+
+model ItineraryDay {
+  id         String          @id @default(uuid())
+  tripId     String
+  trip       Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  dayNumber  Int
+  title      String
+  date       String
+  items      ItineraryItem[]
+
+  @@index([tripId])
+}
+
+model ItineraryItem {
+  id          String       @id @default(uuid())
+  dayId       String
+  day         ItineraryDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  timeOfDay   String
+  title       String
+  description String?
+  category    String
+  cost        Float
+  duration    String
+  location    String?
+  lat         Float?
+  lng         Float?
+  isCompleted Boolean      @default(false)
+
+  @@index([dayId])
+}
+
+model Hotel {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  rating      Float    @default(4.5)
+  image       String?
+  price       Float    @default(0)
+  bookingUrl  String?
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+}
+
+model Restaurant {
+  id          String   @id @default(uuid())
+  name        String
+  cuisine     String
+  rating      Float    @default(4.5)
+  address     String
+  image       String?
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+}
+
+model Place {
+  id          String     @id @default(uuid())
+  name        String
+  category    String
+  description String
+  latitude    Float?
+  longitude   Float?
+  image       String?
+  tripId      String?
+  trip        Trip?      @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  reviews     Review[]
+  bookmarks   Bookmark[]
+
+  @@index([tripId])
+  @@index([category])
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId    String?
+  trip      Trip?     @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  title     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  messages  Message[]
+
+  @@index([userId])
+  @@index([tripId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([chatId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String?
+  place     Place?   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  rating    Float
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([placeId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+  @@index([userId])
+}
+
+model Reward {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points      Int      @default(100)
+  badges      String[] @default([])
+  badgeName   String?
+  badgeIcon   String?
+  description String?
+  unlockedAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Expense {
+  id        String   @id @default(uuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  category  String
+  title     String
+  amount    Float
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model CommunityPost {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  content    String
+  category   String
+  likesCount Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model HiddenGem {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination String
+  title       String
+  category    String
+  description String
+  lat         Float
+  lng         Float
+  image       String
+  rating      Float    @default(4.9)
+  upvotes     Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([destination])
+}
+
+model SafetyReport {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination String
+  areaName    String
+  safetyScore Int
+  isNightSafe Boolean
+  lighting    String
+  notes       String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([destination])
+}
