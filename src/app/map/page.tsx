@@ -13,7 +13,13 @@ import {
   Radio, 
   Layers,
   Globe,
-  MapPin
+  MapPin,
+  Heart,
+  Eye,
+  Sliders,
+  HelpCircle,
+  Activity,
+  Locate
 } from "lucide-react";
 import { GoogleMapContainer, SafetyMarker } from "@/components/google-map/GoogleMapContainer";
 import { GlobalGoogleSearchBar } from "@/components/google-map/GlobalGoogleSearchBar";
@@ -34,7 +40,7 @@ export default function GoogleSafeMapPage() {
   const [activeHeatmaps, setActiveHeatmaps] = useState<string[]>(["Night", "Crowd", "Medical"]);
   const [nearbyCategory, setNearbyCategory] = useState("lodging");
 
-  // Dynamic Location State (No hardcoded city defaults)
+  // Location Coordinates State
   const [searchDestination, setSearchDestination] = useState("");
   const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
@@ -49,7 +55,6 @@ export default function GoogleSafeMapPage() {
   const [activeTabMobile, setActiveTabMobile] = useState<"map" | "dashboard">("map");
   const [dynamicSafetyScore, setDynamicSafetyScore] = useState(95);
 
-  // Ask for Browser Location Permission on First Load
   const requestLocationPermission = useCallback(() => {
     if (typeof window !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -63,7 +68,7 @@ export default function GoogleSafeMapPage() {
           fetchNearbyPlaces(coords.lat, coords.lng, nearbyCategory);
         },
         (err) => {
-          console.warn("User denied geolocation permission or error occurred:", err);
+          console.warn("User denied geolocation permission:", err);
           setIsLocationGranted(false);
           setLocationStatus("denied");
         },
@@ -79,7 +84,6 @@ export default function GoogleSafeMapPage() {
     requestLocationPermission();
   }, []);
 
-  // Fetch Nearby Places by Lat/Lng and Category via Google Places API Proxy
   const fetchNearbyPlaces = async (lat: number, lng: number, category: string) => {
     try {
       const res = await fetch(`/api/external/places?lat=${lat}&lng=${lng}&category=${category}`);
@@ -103,7 +107,6 @@ export default function GoogleSafeMapPage() {
     }
   };
 
-  // Fetch Routes when destination is selected
   const fetchGoogleRoutes = async (dest: string, originStr?: string) => {
     if (!dest) return;
     setIsLoadingRoutes(true);
@@ -129,14 +132,12 @@ export default function GoogleSafeMapPage() {
     }
   }, [travelMode]);
 
-  // Handle Global Location Selection from Google Places Search Bar
   const handleSelectGlobalPlace = async (place: { description: string; placeId?: string; lat?: number; lng?: number }) => {
     setSearchDestination(place.description);
 
     let lat = place.lat;
     let lng = place.lng;
 
-    // Resolve lat/lng if not provided
     if (!lat || !lng) {
       try {
         const res = await fetch(`/api/external/places/details?query=${encodeURIComponent(place.description)}`);
@@ -148,7 +149,7 @@ export default function GoogleSafeMapPage() {
           }
         }
       } catch (err) {
-        console.error("Error fetching place details:", err);
+        console.error("Error fetching details:", err);
       }
     }
 
@@ -156,8 +157,6 @@ export default function GoogleSafeMapPage() {
       setMapCenter({ lat, lng });
       setMapZoom(14);
       fetchNearbyPlaces(lat, lng, nearbyCategory);
-
-      // Update safety score dynamically based on coordinates
       const computedScore = Math.min(99, Math.max(72, Math.floor(84 + (Math.sin(lat + lng) * 14))));
       setDynamicSafetyScore(computedScore);
     }
@@ -183,56 +182,57 @@ export default function GoogleSafeMapPage() {
   const currentRoute = routes.find((r) => r.id === selectedRouteId) || routes[0];
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500 max-w-7xl mx-auto">
       
-      {/* Header Control Bar */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-6 rounded-3xl glass-panel border border-white/10 bg-dark-glass">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+      {/* 1. Header Control Bar */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-6 rounded-3xl glass-panel border border-white/5 bg-[#090d16]/75">
+        <div className="space-y-1 text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
             <Compass className="w-3.5 h-3.5" />
-            <span>Google Places & Maps Worldwide Engine</span>
+            <span>Mapbox & Google Places Integrated</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">YATRIK Global Safe Map</h1>
+          <h1 className="text-2xl font-extrabold text-white">YATRIK Full-Screen Map</h1>
         </div>
 
-        {/* Travel Mode Selector */}
+        {/* Global Google Search & Travel mode */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold">
+          {/* Mode Selector */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10 text-xs font-bold">
             {(["DRIVING", "WALKING", "BICYCLING", "TRANSIT"] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setTravelMode(m)}
-                className={`px-3 py-1.5 rounded-xl transition-all ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   travelMode === m ? "bg-indigo-600 text-white shadow-glow" : "text-gray-400 hover:text-white"
                 }`}
               >
-                {m}
+                {m.toLowerCase()}
               </button>
             ))}
           </div>
 
-          {/* Global Google Search Bar */}
-          <div className="w-full sm:w-96">
+          {/* Search bar */}
+          <div className="w-full sm:w-80">
             <GlobalGoogleSearchBar
               onSelectPlace={handleSelectGlobalPlace}
-              placeholder="Search ANY city, landmark, hotel, airport worldwide..."
+              placeholder="Search cities, landmarks, airports..."
             />
           </div>
         </div>
       </div>
 
-      {/* Location Permission Prompt Banner (If Pending/Denied) */}
+      {/* Geolocation Alert Banner */}
       {locationStatus === "denied" && !searchDestination && (
-        <div className="p-4 rounded-2xl glass-panel border border-amber-500/40 bg-amber-500/10 text-xs text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-center gap-2">
+        <div className="popup-banner p-4 text-xs text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-glow">
+          <div className="flex items-center gap-2 text-left">
             <Globe className="w-5 h-5 text-amber-400 shrink-0" />
-            <span>Location access disabled. Showing World Map view. Use the search bar above to inspect any location globally.</span>
+            <span>Location permission disabled. Showing world view. Use the search bar above to look up any destination.</span>
           </div>
           <button
             onClick={requestLocationPermission}
-            className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-bg font-bold text-xs shrink-0 transition-colors"
+            className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-bg font-extrabold text-[10px] uppercase tracking-wide shrink-0 transition-colors"
           >
-            Enable Location
+            Request Permission
           </button>
         </div>
       )}
@@ -253,16 +253,15 @@ export default function GoogleSafeMapPage() {
             activeTabMobile === "dashboard" ? "bg-indigo-600 text-white" : "text-gray-400"
           }`}
         >
-          Safety Controls
+          Safety Settings
         </button>
       </div>
 
-      {/* Main 2-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Two Column Board Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Column (30% - 4 Cols) */}
-        <div className={`lg:col-span-4 space-y-6 ${activeTabMobile === "map" ? "hidden lg:block" : "block"}`}>
-          
+        {/* Left Column (Safety and Filters sidebar) */}
+        <div className={`lg:col-span-4 space-y-6 ${activeTabMobile === "map" ? "hidden lg:block animate-in slide-in-from-left duration-300" : "block"}`}>
           {/* Circular Safety Meter */}
           <CircularSafetyMeter
             score={isWomensSafetyEnabled ? dynamicSafetyScore : dynamicSafetyScore - 4}
@@ -308,68 +307,68 @@ export default function GoogleSafeMapPage() {
 
           {/* Live Alerts Feed */}
           <LiveAlertsFeed />
-
         </div>
 
-        {/* Right Column (70% - 8 Cols) */}
+        {/* Right Column (Large Map Canvas) */}
         <div className={`lg:col-span-8 space-y-6 ${activeTabMobile === "dashboard" ? "hidden lg:block" : "block"}`}>
-          
-          <GoogleMapContainer
-            center={mapCenter}
-            zoom={mapZoom}
-            activePlaceName={searchDestination}
-            isLocationGranted={isLocationGranted}
-            polylinePath={currentRoute?.polylinePath || []}
-            safetyMarkers={nearbyPlaces}
-            isWomensSafetyEnabled={isWomensSafetyEnabled}
-            onLocateCurrentPosition={requestLocationPermission}
-          />
+          <div className="rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl relative">
+            <GoogleMapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              activePlaceName={searchDestination}
+              isLocationGranted={isLocationGranted}
+              polylinePath={currentRoute?.polylinePath || []}
+              safetyMarkers={nearbyPlaces}
+              isWomensSafetyEnabled={isWomensSafetyEnabled}
+              onLocateCurrentPosition={requestLocationPermission}
+            />
+          </div>
 
-          {/* Active Route Summary Footer Card */}
+          {/* Active Navigation Summary overlay */}
           {currentRoute && (
-            <div className="p-5 rounded-3xl glass-panel border border-white/10 space-y-3 bg-gradient-to-r from-indigo-950/40 via-dark-bg to-dark-bg">
+            <div className="p-5 rounded-3xl glass-panel border border-emerald-500/20 space-y-4 bg-gradient-to-r from-emerald-950/20 via-[#030712] to-dark-bg text-left">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
-                    Active Google Route: {currentRoute.title}
+                <div className="space-y-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wide">
+                    Safe Routing Mode: {currentRoute.title}
                   </span>
-                  <h3 className="text-base font-extrabold text-white mt-1">{currentRoute.routeSummary}</h3>
+                  <h3 className="text-base font-extrabold text-white">{currentRoute.routeSummary}</h3>
                 </div>
 
                 <button
-                  onClick={() => alert(`Starting Google Live Navigation to ${searchDestination || "destination"}!`)}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-glow transition-all shrink-0"
+                  onClick={() => alert(`Starting Live navigation directions to ${searchDestination || "destination"}!`)}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-glow transition-all shrink-0 hover:scale-105"
                 >
-                  Start Google Live Navigation
+                  Start Live Navigation
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1 border-t border-white/10">
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-gray-400">Distance</span>
-                  <p className="font-extrabold text-white">{currentRoute.distanceKm}</p>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-white/5">
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-gray-400 block font-semibold uppercase">Distance</span>
+                  <p className="font-extrabold text-white text-sm">{currentRoute.distanceKm}</p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-gray-400">ETA</span>
-                  <p className="font-extrabold text-emerald-400">{currentRoute.durationMins}</p>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-gray-400 block font-semibold uppercase">Duration</span>
+                  <p className="font-extrabold text-emerald-400 text-sm">{currentRoute.durationMins}</p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-gray-400">Est. Fuel</span>
-                  <p className="font-extrabold text-amber-400">{currentRoute.estimatedFuelLiters} Liters</p>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-gray-400 block font-semibold uppercase">Fuel Predicted</span>
+                  <p className="font-extrabold text-amber-400 text-sm">{currentRoute.estimatedFuelLiters} L</p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-gray-400">Tolls</span>
-                  <p className="font-extrabold text-white">{currentRoute.tollCount > 0 ? `${currentRoute.tollCount} Toll` : "No Tolls"}</p>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-gray-400 block font-semibold uppercase">Tolls</span>
+                  <p className="font-extrabold text-white text-sm">{currentRoute.tollCount > 0 ? `${currentRoute.tollCount} Tolls` : "No Tolls"}</p>
                 </div>
               </div>
             </div>
           )}
-
         </div>
 
       </div>
 
-      {/* Place Details Slide-Up Bottom Sheet */}
+      {/* Detail bottom sheet */}
       <PlaceBottomSheet
         place={selectedPlace}
         onClose={() => setSelectedPlace(null)}
