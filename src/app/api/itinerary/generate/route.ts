@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const destination = body.destination;
+    const destination = body.destinationName || body.destination;
     let lat = body.latitude !== undefined ? Number(body.latitude) : undefined;
     let lng = body.longitude !== undefined ? Number(body.longitude) : undefined;
 

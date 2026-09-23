@@ -44,8 +44,9 @@ export async function searchLocations(
     proximity?: [number, number];
     types?: string;
     limit?: number;
+    sessionToken?: string;
   } = {}
-): Promise<{ results: LocationSearchResult[]; source: string }> {
+): Promise<{ results: LocationSearchResult[]; source: string; error?: string }> {
   const trimmed = query?.trim();
   if (!trimmed || trimmed.length < 2) {
     return { results: [], source: "Mapbox Search" };
@@ -58,85 +59,113 @@ export async function searchLocations(
   }
 
   const token =
-    process.env.MAPBOX_ACCESS_TOKEN ||
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+    process.env.MAPBOX_ACCESS_TOKEN;
 
   if (!token || token.includes("example")) {
     console.warn("Mapbox Access Token is not configured or is an example token.");
-    return { results: [], source: "Mapbox Search (Unconfigured Token)" };
+    return {
+      results: [],
+      source: "Mapbox Search (Unconfigured Token)",
+      error: "Location search is unavailable. Configure the Mapbox access token.",
+    };
   }
+
+  const sessionToken = options.sessionToken || "yatrik-session-" + Date.now();
 
   try {
     const encoded = encodeURIComponent(trimmed);
     const limit = options.limit || 8;
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json`;
 
-    const params: Record<string, string | number> = {
-      access_token: token,
-      limit,
-      autocomplete: "true",
-      language: "en",
-    };
+    // Use current Mapbox Search Box API v1 /suggest
+    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encoded}&language=en&session_token=${sessionToken}&access_token=${token}&limit=${limit}`;
 
-    if (options.types) {
-      params.types = options.types;
-    }
+    const response = await axios.get(url, { timeout: 8000 });
+    const suggestions = response.data?.suggestions || [];
 
-    if (options.proximity && options.proximity.length === 2) {
-      params.proximity = `${options.proximity[0]},${options.proximity[1]}`;
-    }
-
-    const response = await axios.get(url, { params, timeout: 8000 });
-    const features = response.data?.features || [];
-
-    const results: LocationSearchResult[] = features.map((f: any) => {
-      const context = f.context || [];
-      let country = "";
-      let region = "";
-      let city = "";
-
-      for (const item of context) {
-        const id: string = item.id || "";
-        if (id.startsWith("country")) country = item.text || "";
-        else if (id.startsWith("region")) region = item.text || "";
-        else if (id.startsWith("place") || id.startsWith("locality")) city = item.text || "";
-      }
-
-      // If feature itself is a place or country
-      const placeTypes: string[] = f.place_type || [];
-      if (!city && (placeTypes.includes("place") || placeTypes.includes("locality"))) {
-        city = f.text || "";
-      }
-      if (!country && placeTypes.includes("country")) {
-        country = f.text || "";
-      }
-      if (!region && placeTypes.includes("region")) {
-        region = f.text || "";
-      }
-
-      const coordinates: [number, number] = f.center || (f.geometry && f.geometry.coordinates) || [0, 0];
+    const results: LocationSearchResult[] = suggestions.map((s: any) => {
+      const context = s.context || {};
+      const country = context.country?.name || "";
+      const region = context.region?.name || "";
+      const city = context.place?.name || context.locality?.name || s.name;
 
       return {
-        id: f.id,
-        name: f.text || f.place_name?.split(",")[0] || trimmed,
-        formattedAddress: f.place_name || f.text || trimmed,
-        longitude: coordinates[0],
-        latitude: coordinates[1],
-        country: country || (f.properties?.country ?? ""),
-        region: region || (f.properties?.region ?? ""),
-        city: city || (f.properties?.city ?? ""),
-        mapboxPlaceId: f.id || "",
-        placeType: placeTypes,
+        id: s.mapbox_id,
+        name: s.name,
+        formattedAddress: s.place_formatted
+          ? `${s.name}, ${s.place_formatted}`
+          : s.full_address || s.name,
+        longitude: 0, // Retrieved via /retrieve
+        latitude: 0,
+        country,
+        region,
+        city,
+        mapboxPlaceId: s.mapbox_id,
+        placeType: s.feature_type ? [s.feature_type] : ["place"],
       };
     });
 
     cleanCache();
     searchCache.set(cacheKey, { data: results, timestamp: Date.now() });
 
-    return { results, source: "Mapbox Geocoding API" };
+    return { results, source: "Mapbox Search Box API v1" };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Mapbox search error";
     console.error("Mapbox search failed:", errorMsg);
-    return { results: [], source: "Mapbox Search (Live data unavailable)" };
+    return { results: [], source: "Mapbox Search", error: errorMsg };
+  }
+}
+
+/**
+ * Retrieves full place details and coordinates from Mapbox Search Box API v1.
+ */
+export async function retrieveMapboxPlace(
+  mapboxId: string,
+  sessionToken: string
+): Promise<LocationSearchResult | null> {
+  const token =
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+    process.env.MAPBOX_ACCESS_TOKEN;
+
+  if (!token || token.includes("example")) return null;
+
+  try {
+    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(
+      mapboxId
+    )}?session_token=${sessionToken}&access_token=${token}`;
+
+    const res = await axios.get(url, { timeout: 8000 });
+    const feature = res.data?.features?.[0];
+    if (!feature) return null;
+
+    const coordinates = feature.geometry?.coordinates || [0, 0];
+    const properties = feature.properties || {};
+    const context = properties.context || {};
+
+    const country = context.country?.name || "";
+    const region = context.region?.name || "";
+    const city = context.place?.name || context.locality?.name || properties.name;
+
+    return {
+      id: properties.mapbox_id || mapboxId,
+      name: properties.name,
+      formattedAddress:
+        properties.full_address ||
+        (properties.place_formatted
+          ? `${properties.name}, ${properties.place_formatted}`
+          : properties.name),
+      longitude: coordinates[0],
+      latitude: coordinates[1],
+      country,
+      region,
+      city,
+      mapboxPlaceId: mapboxId,
+      placeType: [properties.feature_type || "place"],
+    };
+  } catch (err) {
+    console.error("Failed to retrieve Mapbox place:", err);
+    return null;
   }
 }
