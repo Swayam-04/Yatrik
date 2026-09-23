@@ -252,7 +252,7 @@ function ProfilePageContent({ defaultTab = "overview" }: ProfilePageProps) {
               Inspect hidden gems or safety zones and tap the bookmark icon to save them for easy access on the go.
             </p>
             <button 
-              onClick={() => router.push("/discover")}
+              onClick={() => router.push("/explore")}
               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all"
             >
               Browse Local Spots

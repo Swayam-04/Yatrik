@@ -82,50 +82,7 @@ export const INITIAL_REVIEWS: CommunityReview[] = [
   }
 ];
 
-export const INITIAL_GEMS: HiddenGem[] = [
-  {
-    id: "gem-1",
-    title: "Butterfly Beach Secret Cove",
-    destination: "South Goa",
-    category: "Secret Beach",
-    description: "Accessible via a short 15-min forest hike or boat ride. Pristine turquoise waters, zero crowd, dolphins spotted during early morning.",
-    lat: 15.0125,
-    lng: 73.9871,
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-    rating: 4.9,
-    crowdLevel: "Low",
-    bestTime: "6:30 AM - 9:00 AM",
-    isWomenSafe: true,
-  },
-  {
-    id: "gem-2",
-    title: "Sethi Cafe & Rooftop Library",
-    destination: "Old Manali",
-    category: "Secret Cafe",
-    description: "Nestled away from main market noise. Serves organic mountain herbal teas, woodfired pizzas, and offers panoramic view of snowy peaks.",
-    lat: 32.2496,
-    lng: 77.1892,
-    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80",
-    rating: 4.8,
-    crowdLevel: "Low",
-    bestTime: "4:00 PM - 7:30 PM",
-    isWomenSafe: true,
-  },
-  {
-    id: "gem-3",
-    title: "Baga Creek Sunrise Point",
-    destination: "North Goa",
-    category: "Sunrise Point",
-    description: "Far away from noisy night clubs. Calm water mirror reflections, ideal for golden hour photography and yoga.",
-    lat: 15.5562,
-    lng: 73.7516,
-    image: "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=600&q=80",
-    rating: 4.9,
-    crowdLevel: "Low",
-    bestTime: "6:00 AM - 7:15 AM",
-    isWomenSafe: true,
-  }
-];
+export const INITIAL_GEMS: HiddenGem[] = [];
 
 export const SAFETY_ZONES: SafetyZone[] = [
   {

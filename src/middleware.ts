@@ -17,9 +17,12 @@ const isPublicRoute = createRouteMatcher([
   "/api/places(.*)",
   "/api/weather(.*)",
   "/api/itinerary(.*)",
+  "/api/explore(.*)",
   "/plan(.*)",
   "/map(.*)",
   "/safety(.*)",
+  "/explore(.*)",
+  "/discover(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

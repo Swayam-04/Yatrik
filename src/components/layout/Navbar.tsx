@@ -42,13 +42,13 @@ export function Navbar() {
   // Public Nav Items (When Logged Out)
   const publicNavItems: NavItem[] = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Explore", href: "/discover", icon: Compass },
+    { label: "Explore", href: "/explore", icon: Compass },
     { label: "Community", href: "/community", icon: Users },
   ];
 
   // Protected Nav Items (When Logged In)
   const protectedNavItems: NavItem[] = [
-    { label: "Explore", href: "/discover", icon: Compass },
+    { label: "Explore", href: "/explore", icon: Compass },
     { label: "Plan Trip", href: "/plan", icon: Sparkles },
     { label: "My Trips", href: "/dashboard", icon: Home },
     { label: "Community", href: "/community", icon: Users },
@@ -61,7 +61,7 @@ export function Navbar() {
   // Mobile Bottom Bar Navigation Items (When Logged In)
   const mobileTabbarItems = [
     { label: "Home", href: "/dashboard", icon: Home },
-    { label: "Explore", href: "/discover", icon: Compass },
+    { label: "Explore", href: "/explore", icon: Compass },
     { label: "Plan", href: "/plan", icon: Sparkles },
     { label: "Assistant", href: "/assistant", icon: Bot },
     { label: "Profile", href: "/profile", icon: UserIcon },

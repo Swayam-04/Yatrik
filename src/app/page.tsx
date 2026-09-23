@@ -155,7 +155,7 @@ export default function LandingPage() {
             Plan My Trip
           </button>
           <button
-            onClick={() => handleFeatureNavigate("/discover")}
+            onClick={() => handleFeatureNavigate("/explore")}
             className="px-6 py-3.5 rounded-xl glass-panel border border-white/10 hover:border-white/20 text-white font-bold text-sm transition-all"
           >
             Explore Destinations
@@ -342,7 +342,7 @@ export default function LandingPage() {
           </p>
           <div>
             <button
-              onClick={() => handleFeatureNavigate("/discover")}
+              onClick={() => handleFeatureNavigate("/explore")}
               className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors underline-animated"
             >
               Browse all hidden gems

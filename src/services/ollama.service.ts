@@ -300,3 +300,96 @@ function assembleDeterministicItinerary(input: PlanGenerationInput): ItineraryDa
 
   return days;
 }
+
+/**
+ * Explains a real place and answers user questions using Gemma 4 via Ollama.
+ * Grounded strictly in authentic place facts.
+ */
+export async function explainPlaceWithGemma4(
+  place: RealPlace,
+  userQuestion?: string
+): Promise<{ explanation: string; tips: string[]; source: string }> {
+  const prompt = `
+You are Gemma 4 on YATRIK Travel Platform.
+You are providing insights about this real, verified place:
+- Name: "${place.name}"
+- Category: "${place.category}"
+- Address: "${place.address}"
+- Rating: ${place.rating ?? "N/A"} (${place.userRatingCount ?? 0} reviews)
+- Price Level: ${place.priceLevel ?? "Standard"}
+- Types: ${(place.types || []).join(", ")}
+${place.summary ? `- Summary: "${place.summary}"` : ""}
+
+USER QUESTION: "${userQuestion || "Explain what makes this place special, why a traveler should visit, and tips for visiting."}"
+
+CRITICAL INSTRUCTIONS:
+1. Ground your reasoning ONLY in the real place facts provided.
+2. DO NOT invent fictional opening hours, false prices, or fake attractions inside the venue.
+3. Provide an insightful, engaging summary and 3 practical traveler tips.
+4. Return ONLY a valid JSON object matching:
+{
+  "explanation": "2-3 sentences explaining the vibe, architectural/culinary character, and why it is worth visiting",
+  "tips": ["Tip 1", "Tip 2", "Tip 3"]
+}
+`.trim();
+
+  let responseText = "";
+  let source = `Ollama (${OLLAMA_MODEL})`;
+
+  try {
+    const res = await axios.post(
+      `${OLLAMA_BASE_URL}/api/generate`,
+      {
+        model: OLLAMA_MODEL,
+        prompt,
+        stream: false,
+        format: "json",
+      },
+      { timeout: 30000 }
+    );
+    responseText = res.data?.response || "";
+  } catch (err) {
+    if (process.env.GROQ_API_KEY && !process.env.GROQ_API_KEY.includes("example")) {
+      try {
+        const stream = await groqService.chatStream(
+          [{ role: "user", content: prompt }],
+          "You are Gemma 4 on YATRIK. Output only valid JSON based strictly on provided place data."
+        );
+        for await (const chunk of stream) {
+          responseText += chunk.choices[0]?.delta?.content || "";
+        }
+        source = `Groq Backup (${groqService.getModel()})`;
+      } catch (e) {
+        console.warn("Groq backup failed for place explanation:", e);
+      }
+    }
+  }
+
+  if (responseText) {
+    try {
+      const clean = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      return {
+        explanation: parsed.explanation || `Verified ${place.category} located at ${place.address}.`,
+        tips: Array.isArray(parsed.tips) ? parsed.tips : [
+          "Check local operating hours",
+          "Respect photography guidelines",
+          "Recommended by YATRIK verified local radar",
+        ],
+        source,
+      };
+    } catch {}
+  }
+
+  return {
+    explanation: `${place.name} is a verified ${place.category} located at ${place.address} with a ${
+      place.rating ? place.rating + "★" : "good"
+    } community satisfaction rating.`,
+    tips: [
+      "Check current opening status before heading out",
+      "Easily accessible via local transit or walking routes",
+      "Verified on YATRIK through authentic community and Google Places signals",
+    ],
+    source: "YATRIK Verified Local Intelligence",
+  };
+}
