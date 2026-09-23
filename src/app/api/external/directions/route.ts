@@ -13,7 +13,10 @@ export async function GET(req: NextRequest) {
     const destination = searchParams.get("destination") || "73.8278,15.4989";
     const profile = searchParams.get("mode") || "driving"; // driving, walking, cycling
 
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    const token =
+      process.env.MAPBOX_ACCESS_TOKEN ||
+      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+      process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
     if (token && token.startsWith("pk.") && !token.includes("example")) {
       try {
