@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/user-sync";
 import { TripSchema } from "@/lib/validations";
-import { DEFAULT_TRIPS } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -64,28 +63,15 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (dbErr) {
-      console.warn("Database offline in trips GET, serving fallback trips:", dbErr);
-      const fallbackList = DEFAULT_TRIPS.map(t => ({
-        id: t.id,
-        title: t.title,
-        destination: t.destination,
-        coverImage: t.coverImage,
-        startDate: t.startDate,
-        endDate: t.endDate,
-        budget: t.budgetTotal,
-        spentTotal: t.spentTotal,
-        daysCount: t.daysCount,
-        travelType: t.travelType,
-        transportMode: t.transportMode,
-        status: t.status,
-      }));
+      console.warn("Database offline in trips GET:", dbErr);
       return NextResponse.json({
-        trips: fallbackList,
+        trips: [],
+        message: "Live data unavailable",
         pagination: {
-          total: fallbackList.length,
+          total: 0,
           page: 1,
           limit,
-          totalPages: 1,
+          totalPages: 0,
         },
       });
     }

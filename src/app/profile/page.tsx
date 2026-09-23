@@ -40,6 +40,7 @@ function ProfilePageContent({ defaultTab = "overview" }: ProfilePageProps) {
   const tabParam = searchParams.get("tab");
   
   const [activeTab, setActiveTab] = useState(tabParam || defaultTab);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (tabParam) {

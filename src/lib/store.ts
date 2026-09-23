@@ -1,5 +1,4 @@
 import { Trip, CommunityReview, HiddenGem, SafetyZone, UserProfile } from "@/types";
-import { generateAiTrip } from "./ai-engine";
 
 export const INITIAL_USER: UserProfile = {
   id: "usr-yatrik-001",
@@ -22,26 +21,7 @@ export const INITIAL_USER: UserProfile = {
   wishlist: ["Kyoto, Japan", "Santorini, Greece", "Leh Ladakh, India", "Banff, Canada"],
 };
 
-export const DEFAULT_TRIPS: Trip[] = [
-  generateAiTrip({
-    destination: "Goa",
-    budget: 25000,
-    days: 4,
-    travelers: 1,
-    travelerType: "Women Solo",
-    transportMode: "Flight",
-    preferences: ["Hidden Gems", "Food & Cafes", "Photography", "Nightlife"],
-  }),
-  generateAiTrip({
-    destination: "Tokyo",
-    budget: 120000,
-    days: 6,
-    travelers: 2,
-    travelerType: "Couple",
-    transportMode: "Flight",
-    preferences: ["Luxury", "Food & Cafes", "Cultural & Heritage"],
-  }),
-];
+export const DEFAULT_TRIPS: Trip[] = [];
 
 export const INITIAL_REVIEWS: CommunityReview[] = [
   {

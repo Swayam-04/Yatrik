@@ -25,7 +25,7 @@ import {
   Flame,
   Activity
 } from "lucide-react";
-import { INITIAL_USER, DEFAULT_TRIPS } from "@/lib/store";
+import { INITIAL_USER } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
 
 interface DbTrip {
@@ -107,20 +107,7 @@ export default function DashboardPage() {
       if (tripsRes.trips && tripsRes.trips.length > 0) {
         setTrips(tripsRes.trips);
       } else {
-        setTrips(DEFAULT_TRIPS.map(t => ({
-          id: t.id,
-          title: t.title,
-          destination: t.destination,
-          coverImage: t.coverImage,
-          startDate: t.startDate,
-          endDate: t.endDate,
-          budget: t.budgetTotal,
-          spentTotal: t.spentTotal,
-          daysCount: t.daysCount,
-          travelType: t.travelType,
-          transportMode: t.transportMode,
-          status: t.status,
-        })));
+        setTrips([]);
       }
 
       if (bookmarksRes.bookmarks) setBookmarks(bookmarksRes.bookmarks);

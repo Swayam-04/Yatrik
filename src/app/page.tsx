@@ -26,37 +26,24 @@ import {
   Award
 } from "lucide-react";
 import { INITIAL_REVIEWS } from "@/lib/store";
+import { MapboxSearchBox, SelectedLocation } from "@/components/mapbox/MapboxSearchBox";
 
 export default function LandingPage() {
   const router = useRouter();
   const { isSignedIn } = useUser();
   const { requireAuth } = useAuthModal();
-  const [searchDestination, setSearchDestination] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "beach" | "mountain" | "heritage">("all");
 
   // Compact Planner Widget State
-  const [plannerDest, setPlannerDest] = useState("");
-  const [plannerDates, setPlannerDates] = useState("");
-  const [plannerBudget, setPlannerBudget] = useState("20000");
+  const [plannerDates, setPlannerDates] = useState("4");
+  const [plannerBudget, setPlannerBudget] = useState("25000");
   const [plannerStyle, setPlannerStyle] = useState("Solo");
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLocationSelect = (loc: SelectedLocation) => {
     requireAuth(() => {
-      if (searchDestination.trim()) {
-        router.push(`/plan?destination=${encodeURIComponent(searchDestination)}`);
-      } else {
-        router.push("/plan");
-      }
-    });
-  };
-
-  const handleQuickPlannerSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    requireAuth(() => {
-      const dest = plannerDest.trim() || "Goa";
-      const budget = plannerBudget || "20000";
-      router.push(`/plan?destination=${encodeURIComponent(dest)}&budget=${budget}&travelType=${plannerStyle}`);
+      router.push(
+        `/plan?destination=${encodeURIComponent(loc.name)}&lat=${loc.latitude}&lng=${loc.longitude}&address=${encodeURIComponent(loc.formattedAddress)}&budget=${plannerBudget}&travelType=${plannerStyle}`
+      );
     });
   };
 
@@ -182,84 +169,71 @@ export default function LandingPage() {
             Quick AI Itinerary Builder
           </h3>
           
-          <form onSubmit={handleQuickPlannerSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Destination */}
+          <div className="space-y-4">
+            {/* Global Mapbox Destination Search */}
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-indigo-400" />
-                Destination
+                Where do you want to go?
               </label>
-              <input
-                type="text"
-                placeholder="e.g. Goa, Tokyo"
-                value={plannerDest}
-                onChange={(e) => setPlannerDest(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500"
+              <MapboxSearchBox
+                onLocationSelect={handleLocationSelect}
+                placeholder="Search any destination worldwide (e.g. Paris, Bhubaneswar, Eiffel Tower)..."
               />
             </div>
 
-            {/* Dates */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-indigo-400" />
-                Duration (Days)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="30"
-                placeholder="e.g. 5"
-                value={plannerDates}
-                onChange={(e) => setPlannerDates(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              {/* Duration */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-indigo-400" />
+                  Duration (Days)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="14"
+                  value={plannerDates}
+                  onChange={(e) => setPlannerDates(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
 
-            {/* Budget */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
-                <Wallet className="w-3 h-3 text-indigo-400" />
-                Max Budget (₹)
-              </label>
-              <input
-                type="number"
-                placeholder="e.g. 25000"
-                value={plannerBudget}
-                onChange={(e) => setPlannerBudget(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
+              {/* Budget */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
+                  <Wallet className="w-3 h-3 text-indigo-400" />
+                  Max Budget (₹)
+                </label>
+                <input
+                  type="number"
+                  step="5000"
+                  value={plannerBudget}
+                  onChange={(e) => setPlannerBudget(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
 
-            {/* Travel Style */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
-                <Users className="w-3 h-3 text-indigo-400" />
-                Travel Style
-              </label>
-              <select
-                value={plannerStyle}
-                onChange={(e) => setPlannerStyle(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500 appearance-none bg-[#0d1527]"
-              >
-                <option value="Solo">Solo Traveler</option>
-                <option value="Women Solo">Women Solo</option>
-                <option value="Couple">Couple</option>
-                <option value="Family">Family</option>
-                <option value="Friends">Friends Group</option>
-              </select>
+              {/* Travel Style */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-400 flex items-center gap-1">
+                  <Users className="w-3 h-3 text-indigo-400" />
+                  Travel Style
+                </label>
+                <select
+                  value={plannerStyle}
+                  onChange={(e) => setPlannerStyle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs glass-input focus:ring-1 focus:ring-indigo-500 bg-[#0d1527]"
+                >
+                  <option value="Solo">Solo Traveler</option>
+                  <option value="Women Solo">Women Solo</option>
+                  <option value="Couple">Couple</option>
+                  <option value="Family">Family</option>
+                  <option value="Friends">Friends Group</option>
+                </select>
+              </div>
             </div>
-
-            {/* Build Button */}
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="w-full py-2 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-glow transition-all flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Build Itinerary
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </section>
 
