@@ -286,7 +286,7 @@ export function FloatingAiChatbot() {
     <>
       {/* Floating Action Trigger Button (Opens Sidebar) */}
       <button
-        onClick={() => requireAuth(() => setIsOpen(true))}
+        onClick={() => setIsOpen(true)}
         className={`fixed bottom-6 right-6 z-40 p-3.5 sm:px-4 sm:py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-glow hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2.5 group ${
           isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
