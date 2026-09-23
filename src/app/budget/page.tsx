@@ -21,10 +21,17 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis
 import { formatCurrency } from "@/lib/utils";
 
 export default function SmartBudgetPage() {
+  const [mounted, setMounted] = useState(false);
   const [totalBudget, setTotalBudget] = useState<number>(35000);
   const [travelers, setTravelers] = useState<number>(1);
   const [days, setDays] = useState<number>(5);
   const [tier, setTier] = useState<"Budget" | "Standard" | "Luxury">("Standard");
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   // Dynamic cost prediction multiplier
   const multiplier = tier === "Budget" ? 0.7 : tier === "Luxury" ? 1.8 : 1.0;

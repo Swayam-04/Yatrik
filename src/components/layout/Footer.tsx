@@ -1,8 +1,18 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Compass, ShieldCheck, Heart, Globe, Twitter, Linkedin } from "lucide-react";
 
 export function Footer() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentYear = mounted ? new Date().getFullYear() : 2026;
+
   return (
     <footer className="w-full glass-panel border-t border-white/10 bg-dark-bg mt-20 text-gray-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -74,7 +84,7 @@ export function Footer() {
 
         {/* Bottom copyright */}
         <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} YATRIK Inc. All rights reserved.</p>
+          <p>© {currentYear} YATRIK Inc. All rights reserved.</p>
           <div className="flex items-center gap-1 text-gray-500">
             <span>Crafted for modern global explorers</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline mx-1" />
@@ -84,3 +94,4 @@ export function Footer() {
     </footer>
   );
 }
+

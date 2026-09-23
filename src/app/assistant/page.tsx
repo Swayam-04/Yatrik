@@ -30,12 +30,13 @@ interface Message {
 }
 
 export default function AssistantPage() {
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       sender: "ai",
-      text: "👋 Hello! I am your **YATRIK AI Assistant** powered by Groq. I can help you design custom itineraries, estimate travel budgets, evaluate safety for destinations, and discover hidden local gems. Where would you like to explore?",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text: "👋 Hello! I am your **YATRIK AI Assistant**. I can help you design custom itineraries, estimate travel budgets, evaluate safety for destinations, and discover hidden local gems. Where would you like to explore?",
+      timestamp: "10:00 AM",
     },
   ]);
   const [input, setInput] = useState("");
@@ -55,6 +56,10 @@ export default function AssistantPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const checkHealth = async () => {
     setStatus(prev => ({ ...prev, checking: true }));
     try {
@@ -62,7 +67,7 @@ export default function AssistantPage() {
       if (res.ok) {
         const data = await res.json();
         setStatus({
-          isOnline: data.isOnline,
+          isOnline: Boolean(data.online ?? data.isOnline),
           checking: false,
           model: data.model,
           error: data.error,
@@ -72,7 +77,7 @@ export default function AssistantPage() {
         setStatus({
           isOnline: false,
           checking: false,
-          error: data.error || "Groq Service Unavailable",
+          error: data.error || "AI Service Unavailable",
         });
       }
     } catch {
@@ -85,12 +90,18 @@ export default function AssistantPage() {
   };
 
   useEffect(() => {
-    checkHealth();
-  }, []);
+    if (mounted) {
+      checkHealth();
+    }
+  }, [mounted]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+    if (mounted) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isTyping, mounted]);
+
+  if (!mounted) return null;
 
   const handleCancel = () => {
     if (abortControllerRef.current) {

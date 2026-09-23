@@ -22,9 +22,16 @@ import { SAFETY_ZONES } from "@/lib/store";
 import { getSafetyBadgeColor } from "@/lib/utils";
 
 export default function WomenSafetyPage() {
+  const [mounted, setMounted] = React.useState(false);
   const [isSafeModeActive, setIsSafeModeActive] = useState(true);
   const [sosActive, setSosActive] = useState(false);
   const [selectedCity, setSelectedCity] = useState("Goa");
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const currentZone = SAFETY_ZONES.find((z) => z.city.toLowerCase() === selectedCity.toLowerCase()) || SAFETY_ZONES[0];
   const badgeStyle = getSafetyBadgeColor(currentZone.safetyScore);

@@ -71,6 +71,7 @@ interface DbChat {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
+  const [mounted, setMounted] = useState(false);
 
   const [trips, setTrips] = useState<DbTrip[]>([]);
   const [bookmarks, setBookmarks] = useState<DbBookmark[]>([]);
@@ -80,6 +81,10 @@ export default function DashboardPage() {
   const [coins, setCoins] = useState(250);
   const [level, setLevel] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const userName = user?.fullName || user?.firstName || INITIAL_USER.name;
   const userAvatar = user?.imageUrl || INITIAL_USER.avatar;
@@ -329,7 +334,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h4 className="text-xs font-bold text-white">{chat.title}</h4>
-                        <p className="text-[10px] text-gray-400">Updated {new Date(chat.updatedAt).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-gray-400">Updated {mounted ? new Date(chat.updatedAt).toLocaleDateString() : 'recently'}</p>
                       </div>
                     </div>
                     <ArrowRight className="w-3.5 h-3.5 text-gray-500" />

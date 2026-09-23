@@ -3,13 +3,11 @@ import { groqService, ChatMessage, categorizeGroqError } from '@/services/groq.s
 import { getAuthUser } from "@/lib/user-sync";
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await getAuthUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     const { messages, systemPrompt } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {

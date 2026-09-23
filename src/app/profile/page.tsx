@@ -27,10 +27,15 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ defaultTab = "overview" }: ProfilePageProps) {
+  const [mounted, setMounted] = useState(false);
   const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  if (!isLoaded) {
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isLoaded) {
     return (
       <div className="space-y-8 pb-16 animate-pulse">
         <div className="h-64 rounded-3xl bg-white/5 border border-white/10" />

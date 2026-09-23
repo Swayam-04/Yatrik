@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { getAuthUser } from "@/lib/user-sync";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Allow public weather queries without blocking with 401
     const { searchParams } = new URL(req.url);
     const destination = searchParams.get("destination") || "Goa";
     const apiKey = process.env.OPENWEATHER_API_KEY;

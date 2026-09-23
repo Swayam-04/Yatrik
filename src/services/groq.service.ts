@@ -125,18 +125,36 @@ export class GroqService {
       ...messages,
     ];
 
-    try {
-      const stream = await client.chat.completions.create({
-        model,
-        messages: formattedMessages,
-        temperature: 0.4,
-        stream: true,
-      });
+    const candidateModels = Array.from(new Set([
+      model,
+      'openai/gpt-oss-120b',
+      'qwen/qwen3.8-27b',
+      'openai/gpt-oss-20b',
+      'llama-3.3-70b-versatile',
+    ]));
 
-      return stream;
-    } catch (err) {
-      throw new Error(categorizeGroqError(err));
+    let lastError: unknown = null;
+    for (const m of candidateModels) {
+      try {
+        const stream = await client.chat.completions.create({
+          model: m,
+          messages: formattedMessages,
+          temperature: 0.4,
+          stream: true,
+        });
+
+        return stream;
+      } catch (err: unknown) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message.toLowerCase() : '';
+        if (msg.includes('model_not_found') || msg.includes('does not exist')) {
+          continue;
+        }
+        throw new Error(categorizeGroqError(err));
+      }
     }
+
+    throw new Error(categorizeGroqError(lastError));
   }
 
   /**

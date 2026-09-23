@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/user-sync";
 import { UserSchema } from "@/lib/validations";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUser();

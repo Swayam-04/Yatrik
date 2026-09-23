@@ -21,8 +21,13 @@ import { CommunityReview } from "@/types";
 import confetti from "canvas-confetti";
 
 export default function CommunityPage() {
+  const [mounted, setMounted] = useState(false);
   const [reviews, setReviews] = useState<CommunityReview[]>(INITIAL_REVIEWS);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form states for new review
   const [placeName, setPlaceName] = useState("");
@@ -31,6 +36,8 @@ export default function CommunityPage() {
   const [comment, setComment] = useState("");
   const [actualExpense, setActualExpense] = useState<number>(350);
   const [scamWarning, setScamWarning] = useState("");
+
+  if (!mounted) return null;
 
   const handleUpvote = (id: string) => {
     setReviews(

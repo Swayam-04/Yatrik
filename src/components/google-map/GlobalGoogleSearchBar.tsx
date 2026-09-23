@@ -41,9 +41,14 @@ export function GlobalGoogleSearchBar({
   placeholder = "Search ANY city, country, hotel, airport, restaurant worldwide...",
   className = "",
 }: GlobalGoogleSearchBarProps) {
+  const [mounted, setMounted] = useState(false);
   const [value, setValue] = useState("");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

@@ -29,13 +29,14 @@ interface Message {
 
 export function FloatingAiChatbot() {
   const { requireAuth } = useAuthModal();
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       sender: "ai",
-      text: "👋 Hi! I am **YATRIK AI Assistant** powered by Groq. How can I help you plan your journey today?",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text: "👋 Hi! I am **YATRIK AI Assistant**. How can I help you plan your journey today?",
+      timestamp: "10:00 AM",
     },
   ]);
   const [input, setInput] = useState("");
@@ -55,6 +56,10 @@ export function FloatingAiChatbot() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Check Groq AI Service Health
   const checkHealth = async () => {
     setGroqStatus(prev => ({ ...prev, checking: true }));
@@ -63,7 +68,7 @@ export function FloatingAiChatbot() {
       if (res.ok) {
         const data = await res.json();
         setGroqStatus({
-          isOnline: data.isOnline,
+          isOnline: Boolean(data.online ?? data.isOnline),
           checking: false,
           model: data.model,
           error: data.error
@@ -73,7 +78,7 @@ export function FloatingAiChatbot() {
         setGroqStatus({
           isOnline: false,
           checking: false,
-          error: data.error || "Groq Service Unavailable"
+          error: data.error || "AI Service Unavailable"
         });
       }
     } catch {
@@ -86,8 +91,10 @@ export function FloatingAiChatbot() {
   };
 
   useEffect(() => {
-    checkHealth();
-  }, []);
+    if (mounted) {
+      checkHealth();
+    }
+  }, [mounted]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -242,6 +249,8 @@ export function FloatingAiChatbot() {
     { label: "Kerala Budget Hack", query: "How can I optimize a ₹15,000 budget for a 4-day Kerala backwater trip?" },
     { label: "Hidden Gems Manali", query: "Recommend 4 top secret cafes and scenic viewpoints in Manali." }
   ];
+
+  if (!mounted) return null;
 
   return (
     <>

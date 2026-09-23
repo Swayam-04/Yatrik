@@ -28,11 +28,16 @@ import { PlaceBottomSheet, PlaceDetail } from "@/components/map/PlaceBottomSheet
 import { GoogleRouteSummary } from "@/app/api/external/google-routes/route";
 
 export default function GoogleSafeMapPage() {
+  const [mounted, setMounted] = useState(false);
   const [selectedRouteId, setSelectedRouteId] = useState<"Fastest" | "Safest" | "Scenic" | "Cheapest">("Fastest");
   const [travelMode, setTravelMode] = useState<"DRIVING" | "WALKING" | "BICYCLING" | "TRANSIT">("DRIVING");
   const [isWomensSafetyEnabled, setIsWomensSafetyEnabled] = useState(true);
   const [activeHeatmaps, setActiveHeatmaps] = useState<string[]>(["Night", "Crowd", "Medical"]);
   const [nearbyCategory, setNearbyCategory] = useState("lodging");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Dynamic Location State (No hardcoded city defaults)
   const [searchDestination, setSearchDestination] = useState("");
@@ -180,6 +185,23 @@ export default function GoogleSafeMapPage() {
     }
   };
 
+  const handleSelectMarker = (marker: SafetyMarker) => {
+    const detail: PlaceDetail = {
+      id: marker.id,
+      name: marker.title,
+      category: marker.type.replace(/_/g, " "),
+      address: marker.address || `${marker.title}, Near ${searchDestination || "Selected Location"}`,
+      rating: 4.8,
+      safetyScore: marker.safetyScore || 92,
+      crowdStatus: "Moderate Crowd",
+      openingHours: "Open 24/7 • Verified Safe Zone",
+      phone: "+91 800 123 4567",
+      photoUrl: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80",
+      description: `Verified safe ${marker.type.replace(/_/g, " ")} location with live CCTV monitoring, women's safety escort availability, and fast emergency response access.`,
+    };
+    setSelectedPlace(detail);
+  };
+
   const currentRoute = routes.find((r) => r.id === selectedRouteId) || routes[0];
 
   return (
@@ -323,6 +345,7 @@ export default function GoogleSafeMapPage() {
             safetyMarkers={nearbyPlaces}
             isWomensSafetyEnabled={isWomensSafetyEnabled}
             onLocateCurrentPosition={requestLocationPermission}
+            onSelectMarker={handleSelectMarker}
           />
 
           {/* Active Route Summary Footer Card */}

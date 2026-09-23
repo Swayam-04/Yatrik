@@ -3,6 +3,8 @@ import { groqService, ItineraryGenerationRequest } from "@/services/groq.service
 import { getAuthUser } from "@/lib/user-sync";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const body: ItineraryGenerationRequest = await req.json();

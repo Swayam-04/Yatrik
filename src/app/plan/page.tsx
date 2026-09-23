@@ -38,6 +38,7 @@ function AiPlannerContent() {
   const searchParams = useSearchParams();
   const initialDest = searchParams.get("destination") || "Goa";
 
+  const [mounted, setMounted] = useState(false);
   const [destination, setDestination] = useState(initialDest);
   const [budget, setBudget] = useState<number>(25000);
   const [days, setDays] = useState<number>(4);
@@ -67,6 +68,10 @@ function AiPlannerContent() {
     model: "llama-3.3-70b-versatile"
   });
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const checkHealth = async () => {
     setAiStatus(prev => ({ ...prev, checking: true }));
     try {
@@ -74,7 +79,7 @@ function AiPlannerContent() {
       if (res.ok) {
         const data = await res.json();
         setAiStatus({
-          isOnline: data.isOnline,
+          isOnline: Boolean(data.online ?? data.isOnline),
           checking: false,
           model: data.model || "llama-3.3-70b-versatile",
           error: data.error
@@ -85,7 +90,7 @@ function AiPlannerContent() {
           isOnline: false,
           checking: false,
           model: "llama-3.3-70b-versatile",
-          error: data.error || "Groq Service Standby"
+          error: data.error || "AI Service Standby"
         });
       }
     } catch {
@@ -99,9 +104,13 @@ function AiPlannerContent() {
   };
 
   useEffect(() => {
-    checkHealth();
-    handleGeneratePlan();
-  }, []);
+    if (mounted) {
+      checkHealth();
+      handleGeneratePlan();
+    }
+  }, [mounted]);
+
+  if (!mounted) return null;
 
   const handleGeneratePlan = async () => {
     setIsGenerating(true);

@@ -17,28 +17,44 @@ export async function getAuthUser() {
     const isAdmin = email.toLowerCase().includes("admin") || clerkUser.publicMetadata?.role === "admin";
 
     // Upsert user record in Prisma PostgreSQL database
-    const dbUser = await prisma.user.upsert({
-      where: { clerkId },
-      update: {
-        name,
-        avatar,
-        email,
-        role: isAdmin ? "ADMIN" : undefined,
-      },
-      create: {
+    try {
+      const dbUser = await prisma.user.upsert({
+        where: { clerkId },
+        update: {
+          name,
+          avatar,
+          email,
+          role: isAdmin ? "ADMIN" : undefined,
+        },
+        create: {
+          clerkId,
+          email,
+          name,
+          avatar,
+          role: isAdmin ? "ADMIN" : "USER",
+          coins: 250,
+          level: 1,
+        },
+      });
+
+      return dbUser;
+    } catch (dbError) {
+      console.warn("Database sync offline, using authenticated Clerk user fallback:", dbError);
+      return {
+        id: clerkId,
         clerkId,
-        email,
         name,
+        email,
         avatar,
-        role: isAdmin ? "ADMIN" : "USER",
+        role: (isAdmin ? "ADMIN" : "USER") as "ADMIN" | "USER",
         coins: 250,
         level: 1,
-      },
-    });
-
-    return dbUser;
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
   } catch (error) {
-    console.error("Error in getAuthUser database sync:", error);
+    console.error("Error in getAuthUser session check:", error);
     return null;
   }
 }

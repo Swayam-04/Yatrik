@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/user-sync";
 import { ChatSchema } from "@/lib/validations";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -10,17 +12,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const chats = await prisma.chat.findMany({
-      where: user.role === "ADMIN" ? {} : { userId: user.id },
-      include: {
-        messages: {
-          orderBy: { createdAt: "asc" },
+    try {
+      const chats = await prisma.chat.findMany({
+        where: user.role === "ADMIN" ? {} : { userId: user.id },
+        include: {
+          messages: {
+            orderBy: { createdAt: "asc" },
+          },
         },
-      },
-      orderBy: { updatedAt: "desc" },
-    });
+        orderBy: { updatedAt: "desc" },
+      });
 
-    return NextResponse.json({ chats });
+      return NextResponse.json({ chats });
+    } catch (dbErr) {
+      console.warn("Database offline in chat GET, returning empty list:", dbErr);
+      return NextResponse.json({ chats: [] });
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch chats";
     return NextResponse.json({ error: message }, { status: 500 });

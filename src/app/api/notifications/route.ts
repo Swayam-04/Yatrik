@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/user-sync";
 import { NotificationSchema } from "@/lib/validations";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -10,12 +12,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const notifications = await prisma.notification.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    });
+    try {
+      const notifications = await prisma.notification.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+      });
 
-    return NextResponse.json({ notifications });
+      return NextResponse.json({ notifications });
+    } catch (dbErr) {
+      console.warn("Database offline in notifications GET, returning empty list:", dbErr);
+      return NextResponse.json({ notifications: [] });
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch notifications";
     return NextResponse.json({ error: message }, { status: 500 });

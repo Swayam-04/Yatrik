@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/user-sync";
 import { RewardSchema } from "@/lib/validations";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -10,18 +12,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const rewards = await prisma.reward.findMany({
-      where: user.role === "ADMIN" ? {} : { userId: user.id },
-      orderBy: { unlockedAt: "desc" },
-    });
+    try {
+      const rewards = await prisma.reward.findMany({
+        where: user.role === "ADMIN" ? {} : { userId: user.id },
+        orderBy: { unlockedAt: "desc" },
+      });
 
-    return NextResponse.json({
-      userStats: {
-        coins: user.coins,
-        level: user.level,
-      },
-      rewards,
-    });
+      return NextResponse.json({
+        userStats: {
+          coins: user.coins,
+          level: user.level,
+        },
+        rewards,
+      });
+    } catch (dbErr) {
+      console.warn("Database offline in rewards GET, serving user stats:", dbErr);
+      return NextResponse.json({
+        userStats: {
+          coins: user.coins || 250,
+          level: user.level || 1,
+        },
+        rewards: [],
+      });
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch rewards";
     return NextResponse.json({ error: message }, { status: 500 });

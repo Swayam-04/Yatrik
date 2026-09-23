@@ -118,6 +118,7 @@ interface GoogleMapContainerProps {
   safetyMarkers?: SafetyMarker[];
   isWomensSafetyEnabled?: boolean;
   onLocateCurrentPosition?: () => void;
+  onSelectMarker?: (marker: SafetyMarker) => void;
 }
 
 export function GoogleMapContainer({
@@ -129,6 +130,7 @@ export function GoogleMapContainer({
   safetyMarkers = [],
   isWomensSafetyEnabled = true,
   onLocateCurrentPosition,
+  onSelectMarker,
 }: GoogleMapContainerProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
@@ -295,7 +297,10 @@ export function GoogleMapContainer({
               position={{ lat: marker.lat, lng: marker.lng }}
               title={marker.title}
               icon={getMarkerIcon(marker.type)}
-              onClick={() => setSelectedMarker(marker)}
+              onClick={() => {
+                setSelectedMarker(marker);
+                onSelectMarker?.(marker);
+              }}
             />
           ))}
 
@@ -337,10 +342,15 @@ export function GoogleMapContainer({
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 text-left">
               {safetyMarkers.slice(0, 6).map((m) => (
-                <div key={m.id} className="p-2 rounded-xl bg-white/5 border border-white/10 text-[10px] space-y-0.5">
-                  <span className="text-emerald-400 font-bold block truncate">📍 {m.title}</span>
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onSelectMarker?.(m)}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 text-[10px] space-y-0.5 text-left transition-all cursor-pointer group"
+                >
+                  <span className="text-emerald-400 font-bold block truncate group-hover:text-indigo-300">📍 {m.title}</span>
                   <span className="text-gray-400 block text-[9px] truncate">{m.type}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

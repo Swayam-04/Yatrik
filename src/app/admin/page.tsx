@@ -16,10 +16,15 @@ import {
 } from "lucide-react";
 
 export default function AdminPanelPage() {
+  const [mounted, setMounted] = useState(false);
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"reports" | "users" | "reviews">("reports");
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isLoaded) {
@@ -41,7 +46,7 @@ export default function AdminPanelPage() {
     }
   }, [user, isLoaded, router]);
 
-  if (!isLoaded || isAuthorized === null) {
+  if (!mounted || !isLoaded || isAuthorized === null) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="flex items-center gap-3 text-indigo-400 text-sm font-semibold animate-pulse">
