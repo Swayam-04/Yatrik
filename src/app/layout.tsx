@@ -3,9 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { FloatingAiChatbot } from "@/components/ai/FloatingAiChatbot";
+import { AppShell } from "@/components/layout/AppShell";
 import { AuthModalProvider } from "@/components/auth/AuthModalContext";
 
 const inter = Inter({
@@ -53,12 +51,7 @@ export default function RootLayout({
       <html lang="en" className={`dark ${inter.variable} ${outfit.variable}`}>
         <body className="min-h-screen bg-[#030712] text-gray-100 flex flex-col antialiased selection:bg-indigo-500 selection:text-white font-sans">
           <AuthModalProvider>
-            <Navbar />
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              {children}
-            </main>
-            <FloatingAiChatbot />
-            <Footer />
+            <AppShell>{children}</AppShell>
           </AuthModalProvider>
         </body>
       </html>
