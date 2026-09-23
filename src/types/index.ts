@@ -1,4 +1,18 @@
-export type TravelerType = 'Solo' | 'Women Solo' | 'Couple' | 'Family' | 'Friends' | 'Digital Nomad';
+export type TravelerType =
+  | 'Solo'
+  | 'Women Solo'
+  | 'Couple'
+  | 'Family'
+  | 'Friends'
+  | 'Digital Nomad'
+  | 'Adventure'
+  | 'Relaxation'
+  | 'Culture'
+  | 'Food'
+  | 'Nature'
+  | 'Luxury'
+  | 'Budget'
+  | 'Romantic';
 
 export type TransportMode = 'Flight' | 'Train' | 'Car' | 'Bus' | 'Metro' | 'Walking';
 

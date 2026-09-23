@@ -43,7 +43,7 @@ export function FloatingAiChatbot() {
     {
       id: "1",
       sender: "ai",
-      text: "👋 Hi! I am **YATRIK AI Assistant** powered by Groq & Gemma 4.\n\nAsk me about secret spots, personalized travel itineraries, local food, or verified women safety routes!",
+      text: "👋 Hi! I am **YATRIK Guide**, your AI travel companion powered by Gemma 4.\n\nAsk me about secret spots, personalized travel itineraries, local food, or verified women safety routes!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -287,26 +287,26 @@ export function FloatingAiChatbot() {
       {/* Floating Action Trigger Button (Opens Sidebar) */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 p-3.5 sm:px-4 sm:py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-glow hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2.5 group ${
+        className={`fixed bottom-6 right-6 z-40 p-3.5 sm:px-4 sm:py-3.5 rounded-2xl bg-gradient-to-r from-[#14B8A6] via-[#0E7490] to-[#0284C7] text-white shadow-[0_4px_20px_rgba(20,184,166,0.35)] hover:shadow-[0_6px_24px_rgba(20,184,166,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2.5 group ${
           isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
-        title="Open YATRIK AI Sidebar"
+        title="Open YATRIK Travel Guide"
         aria-label="Open AI Travel Assistant"
       >
         <div className="relative">
           <Bot className="w-5 h-5 text-white group-hover:rotate-12 transition-transform" />
           <span
-            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#090d16] ${
+            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#071A2B] ${
               groqStatus.isOnline ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
             }`}
           />
         </div>
 
         <div className="hidden sm:flex flex-col text-left">
-          <span className="font-extrabold text-[11px] uppercase tracking-wider leading-none">
-            AI Assistant
+          <span className="font-extrabold text-[11px] uppercase tracking-wider leading-none text-white">
+            YATRIK Guide
           </span>
-          <span className="text-[9px] text-indigo-200 font-medium">Groq & Gemma 4</span>
+          <span className="text-[9px] text-[#A5F3FC] font-medium">Travel Intelligence</span>
         </div>
       </button>
 
@@ -321,27 +321,27 @@ export function FloatingAiChatbot() {
 
       {/* Slide-out AI Assistant Sidebar */}
       <aside
-        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[440px] md:w-[480px] bg-[#090d16]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[440px] md:w-[480px] bg-[#071A2B]/95 backdrop-blur-2xl border-l border-[#14B8A6]/20 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
         }`}
-        aria-label="YATRIK AI Sidebar"
+        aria-label="YATRIK Travel Guide"
       >
         {/* Sidebar Header */}
-        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#060911]/90 flex items-center justify-between shrink-0">
+        <div className="p-4 sm:p-5 border-b border-[#14B8A6]/15 bg-[#030F1A]/90 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-glow shrink-0">
-              <div className="w-full h-full bg-[#030712] rounded-[14px] flex items-center justify-center">
-                <Bot className="w-5 h-5 text-indigo-400 animate-pulse" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#14B8A6] via-[#0E7490] to-[#38BDF8] p-0.5 shadow-md shrink-0">
+              <div className="w-full h-full bg-[#071A2B] rounded-[14px] flex items-center justify-center">
+                <Bot className="w-5 h-5 text-[#38BDF8] animate-pulse" />
               </div>
             </div>
 
             <div className="text-left">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-extrabold text-white tracking-tight">
-                  YATRIK AI Assistant
+                  YATRIK Guide
                 </h3>
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30 font-bold uppercase tracking-wider">
-                  Sidebar
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#14B8A6]/15 text-[#38BDF8] border border-[#14B8A6]/30 font-bold uppercase tracking-wider">
+                  Intelligence
                 </span>
               </div>
 
@@ -352,7 +352,7 @@ export function FloatingAiChatbot() {
                     <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Connecting to AI...
                   </span>
                 ) : groqStatus.isOnline ? (
-                  <span className="text-emerald-400 flex items-center gap-1">
+                  <span className="text-[#14B8A6] flex items-center gap-1">
                     <CheckCircle2 className="w-2.5 h-2.5" />
                     <span>Active ({groqStatus.model || "Groq LLM"})</span>
                   </span>
@@ -395,16 +395,16 @@ export function FloatingAiChatbot() {
         </div>
 
         {/* Quick Suggestions Chips Bar */}
-        <div className="px-4 py-2.5 border-b border-white/5 bg-[#090d16]/60 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-pink-400" />
+        <div className="px-4 py-2.5 border-b border-[#14B8A6]/10 bg-[#030F1A]/60 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-[#38BDF8]" />
             <span>Try:</span>
           </span>
           {samplePrompts.map((p, i) => (
             <button
               key={i}
               onClick={() => handleSend(p.query)}
-              className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-indigo-600/25 text-gray-300 hover:text-indigo-200 border border-white/10 hover:border-indigo-500/30 text-[11px] font-semibold whitespace-nowrap transition-all flex items-center gap-1"
+              className="px-2.5 py-1 rounded-xl bg-[#071A2B] hover:bg-[#14B8A6]/20 text-slate-300 hover:text-[#38BDF8] border border-white/10 hover:border-[#14B8A6]/30 text-[11px] font-semibold whitespace-nowrap transition-all flex items-center gap-1"
             >
               <span>{p.icon}</span>
               <span>{p.label}</span>
@@ -413,15 +413,15 @@ export function FloatingAiChatbot() {
         </div>
 
         {/* Sidebar Messages Body */}
-        <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar bg-gradient-to-b from-[#090d16] via-[#090d16]/90 to-[#070b12]">
+        <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar bg-gradient-to-b from-[#071A2B] via-[#071A2B]/95 to-[#030F1A]">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
               {msg.sender === "ai" && (
-                <div className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center shrink-0 mt-0.5 shadow-glow-sm">
-                  <Bot className="w-4 h-4 text-indigo-400" />
+                <div className="w-7 h-7 rounded-xl bg-[#14B8A6]/15 border border-[#14B8A6]/30 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                  <Bot className="w-4 h-4 text-[#38BDF8]" />
                 </div>
               )}
 
@@ -429,16 +429,16 @@ export function FloatingAiChatbot() {
                 <div
                   className={`px-4 py-3 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-sm ${
                     msg.sender === "user"
-                      ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-tr-none font-medium"
+                      ? "bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white rounded-tr-none font-medium shadow-md"
                       : msg.isError
                       ? "bg-rose-500/10 text-rose-200 border border-rose-500/30 rounded-tl-none whitespace-pre-wrap"
-                      : "glass-panel bg-[#0d1527]/80 text-gray-100 border border-white/10 rounded-tl-none whitespace-pre-wrap"
+                      : "bg-[#030F1A]/80 text-slate-100 border border-[#14B8A6]/15 rounded-tl-none whitespace-pre-wrap shadow-sm"
                   }`}
                 >
                   {msg.text || (
-                    <span className="flex items-center gap-1.5 text-gray-400 italic">
-                      <Sparkles className="w-3.5 h-3.5 animate-spin text-indigo-400" />
-                      <span>Thinking and synthesizing journey insights...</span>
+                    <span className="flex items-center gap-1.5 text-slate-400 italic">
+                      <Sparkles className="w-3.5 h-3.5 animate-spin text-[#38BDF8]" />
+                      <span>Synthesizing travel intelligence & verified routes...</span>
                     </span>
                   )}
 
@@ -485,10 +485,10 @@ export function FloatingAiChatbot() {
           ))}
 
           {isTyping && (
-            <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-xs">
-              <span className="text-indigo-200 text-xs font-bold pl-1 flex items-center gap-1.5 animate-pulse">
-                <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-                <span>YATRIK AI is generating answer...</span>
+            <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[#14B8A6]/10 border border-[#14B8A6]/25 text-xs">
+              <span className="text-[#A5F3FC] text-xs font-bold pl-1 flex items-center gap-1.5 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span>YATRIK Guide is generating insights...</span>
               </span>
 
               <button
@@ -504,7 +504,7 @@ export function FloatingAiChatbot() {
         </div>
 
         {/* Sidebar Input Form Footer */}
-        <div className="p-4 sm:p-5 border-t border-white/10 bg-[#060911]/95 shrink-0">
+        <div className="p-4 sm:p-5 border-t border-[#14B8A6]/15 bg-[#030F1A]/95 shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -519,22 +519,22 @@ export function FloatingAiChatbot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isTyping}
-                className="w-full px-4 py-3 rounded-2xl text-xs sm:text-sm bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 disabled:opacity-50"
+                className="w-full px-4 py-3 rounded-2xl text-xs sm:text-sm bg-[#071A2B]/80 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-[#14B8A6]/60 focus:ring-1 focus:ring-[#14B8A6]/30 disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={!input.trim() || isTyping}
-              className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-glow flex items-center gap-1.5 shrink-0 font-bold text-xs"
+              className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-gradient-to-r from-[#14B8A6] via-[#0E7490] to-[#0284C7] hover:brightness-110 text-white disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-[0_4px_16px_rgba(20,184,166,0.3)] flex items-center gap-1.5 shrink-0 font-bold text-xs"
             >
               <Send className="w-4 h-4" />
               <span className="hidden sm:inline">Send</span>
             </button>
           </form>
 
-          <div className="flex items-center justify-between text-[10px] text-gray-500 mt-2 px-1">
-            <span>Powered by Groq & Gemma 4 Real Grounding</span>
+          <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 px-1">
+            <span>Powered by Gemma 4 Real Grounding</span>
             <span className="hidden sm:inline">Press Esc to close</span>
           </div>
         </div>

@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
   Compass,
-  Sparkles,
-  Home,
+  Route,
+  Luggage,
   Users,
   Bookmark,
-  Award,
-  Bot,
+  Trophy,
+  Sparkles,
   Shield,
 } from "lucide-react";
 
@@ -25,12 +25,12 @@ interface NavItemConfig {
 
 const NAV_ITEMS: NavItemConfig[] = [
   { label: "Explore", href: "/explore", icon: Compass },
-  { label: "Plan Trip", href: "/plan", icon: Sparkles },
-  { label: "My Trips", href: "/dashboard", icon: Home },
+  { label: "Plan Trip", href: "/plan", icon: Route },
+  { label: "My Trips", href: "/dashboard", icon: Luggage },
   { label: "Community", href: "/community", icon: Users },
   { label: "Saved", href: "/bookmarks", icon: Bookmark },
-  { label: "Rewards", href: "/rewards", icon: Award },
-  { label: "AI Assistant", href: "/assistant", icon: Bot, badge: "Gemma 4" },
+  { label: "Rewards", href: "/rewards", icon: Trophy },
+  { label: "AI Assistant", href: "/assistant", icon: Sparkles, badge: "Gemma 4" },
   { label: "Admin Dashboard", href: "/admin", icon: Shield, adminOnly: true },
 ];
 
@@ -75,8 +75,8 @@ export function SidebarNav({ isCollapsed = false, onItemClick }: SidebarNavProps
                 : "px-3.5 py-2.5"
             } ${
               isActive
-                ? "bg-gradient-to-r from-indigo-600/20 via-purple-600/15 to-transparent text-white border-l-2 border-indigo-500 shadow-glow-sm"
-                : "text-gray-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent"
+                ? "bg-gradient-to-r from-[#0E7490]/30 via-[#14B8A6]/15 to-transparent text-white border-l-2 border-[#14B8A6] shadow-[0_0_15px_rgba(20,184,166,0.2)]"
+                : "text-slate-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent"
             }`}
           >
             {/* Nav Icon */}
@@ -84,8 +84,8 @@ export function SidebarNav({ isCollapsed = false, onItemClick }: SidebarNavProps
               <Icon
                 className={`w-4 h-4 transition-transform duration-200 ${
                   isActive
-                    ? "text-indigo-400 scale-110"
-                    : "text-gray-400 group-hover:text-gray-200 group-hover:scale-105"
+                    ? "text-[#38BDF8] scale-110 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]"
+                    : "text-slate-400 group-hover:text-slate-200 group-hover:scale-105"
                 }`}
               />
             </div>
@@ -95,7 +95,7 @@ export function SidebarNav({ isCollapsed = false, onItemClick }: SidebarNavProps
               <div className="flex-1 flex items-center justify-between overflow-hidden">
                 <span className="truncate tracking-wide">{item.label}</span>
                 {item.badge && (
-                  <span className="ml-2 px-1.5 py-0.5 rounded-md bg-pink-500/15 text-pink-300 border border-pink-500/25 text-[9px] font-extrabold uppercase tracking-wider shrink-0 animate-pulse">
+                  <span className="ml-2 px-1.5 py-0.5 rounded-md bg-[#14B8A6]/15 text-[#38BDF8] border border-[#14B8A6]/30 text-[9px] font-extrabold uppercase tracking-wider shrink-0">
                     {item.badge}
                   </span>
                 )}
@@ -104,10 +104,10 @@ export function SidebarNav({ isCollapsed = false, onItemClick }: SidebarNavProps
 
             {/* Floating Tooltip when collapsed on desktop */}
             {isCollapsed && (
-              <div className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-[#0e1424] text-white text-[11px] font-bold shadow-xl border border-white/10 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 whitespace-nowrap z-50">
+              <div className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-[#071A2B] text-white text-[11px] font-bold shadow-2xl border border-[#0E7490]/30 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 whitespace-nowrap z-50">
                 {item.label}
                 {item.badge && (
-                  <span className="ml-1.5 text-[9px] text-pink-300">({item.badge})</span>
+                  <span className="ml-1.5 text-[9px] text-[#38BDF8]">({item.badge})</span>
                 )}
               </div>
             )}

@@ -1,23 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useTransition } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Sparkles,
   MapPin,
   Search,
-  Filter,
   SlidersHorizontal,
   Compass,
-  Star,
-  Clock,
-  Heart,
-  Layers,
   ArrowUpDown,
   RefreshCw,
   Eye,
   Loader2,
   ChevronDown,
-  Navigation,
 } from "lucide-react";
 import { MapboxSearchBox, SelectedLocation } from "@/components/mapbox/MapboxSearchBox";
 import { MapboxMapContainer, MapMarkerItem } from "@/components/mapbox/MapboxMapContainer";
@@ -25,34 +19,34 @@ import { ExplorePlaceCard } from "@/components/explore/ExplorePlaceCard";
 import { PlaceDetailsModal } from "@/components/explore/PlaceDetailsModal";
 import type { ExplorePlaceItem, ExploreResponse } from "@/services/explore.service";
 
-// 22 Dynamic Categories
+// Travel Categories with popular ones prioritized
 const EXPLORE_CATEGORIES = [
-  { id: "all", label: "All Places", icon: "🌐" },
-  { id: "hidden-gems", label: "Hidden Gems", icon: "✨" },
-  { id: "attractions", label: "Attractions", icon: "🏛️" },
   { id: "nature", label: "Nature", icon: "🌲" },
-  { id: "historical", label: "Historical", icon: "🏰" },
-  { id: "cultural", label: "Cultural", icon: "🎭" },
-  { id: "temples", label: "Temples", icon: "🛕" },
-  { id: "museums", label: "Museums", icon: "🖼️" },
-  { id: "viewpoints", label: "Viewpoints", icon: "🌄" },
+  { id: "cultural", label: "Culture", icon: "🎭" },
+  { id: "local-food", label: "Food", icon: "🍜" },
+  { id: "adventure", label: "Adventure", icon: "🧗" },
+  { id: "hidden-gems", label: "Hidden Gems", icon: "✨" },
   { id: "beaches", label: "Beaches", icon: "🏖️" },
-  { id: "waterfalls", label: "Waterfalls", icon: "🌊" },
-  { id: "parks", label: "Parks", icon: "🌳" },
+  { id: "historical", label: "History", icon: "🏰" },
+  { id: "photography", label: "Photography", icon: "📸" },
+  { id: "all", label: "All Places", icon: "🌐" },
+  { id: "attractions", label: "Attractions", icon: "🏛️" },
+  { id: "viewpoints", label: "Viewpoints", icon: "🌄" },
   { id: "cafes", label: "Cafes", icon: "☕" },
   { id: "restaurants", label: "Restaurants", icon: "🍽️" },
-  { id: "local-food", label: "Local Food", icon: "🍲" },
+  { id: "temples", label: "Temples", icon: "🛕" },
+  { id: "museums", label: "Museums", icon: "🖼️" },
+  { id: "waterfalls", label: "Waterfalls", icon: "🌊" },
+  { id: "parks", label: "Parks", icon: "🌳" },
   { id: "markets", label: "Markets", icon: "🛍️" },
   { id: "shopping", label: "Shopping", icon: "🏬" },
   { id: "activities", label: "Activities", icon: "🎯" },
-  { id: "adventure", label: "Adventure", icon: "🧗" },
-  { id: "photography", label: "Photography", icon: "📸" },
   { id: "family", label: "Family", icon: "👨‍👩‍👧" },
   { id: "nightlife", label: "Nightlife", icon: "🍸" },
 ];
 
 export default function ExplorePage() {
-  // Current active location (Defaults to Bhubaneswar or user choice, 100% dynamic)
+  // Current active location (Defaults to dynamic search)
   const [currentLocation, setCurrentLocation] = useState<SelectedLocation>({
     name: "Bhubaneswar",
     formattedAddress: "Bhubaneswar, Odisha, India",
@@ -98,62 +92,88 @@ export default function ExplorePage() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("yatrik_saved_places");
-      if (stored) setSavedPlaceIds(JSON.parse(stored));
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setSavedPlaceIds(parsed.map((p: any) => p.placeId || p.id));
+        }
+      }
     } catch {
-      // Ignore storage errors
+      // ignore
     }
   }, []);
 
+  // Save / Bookmark handler
   const handleToggleSave = (place: ExplorePlaceItem) => {
-    setSavedPlaceIds((prev) => {
-      const updated = prev.includes(place.placeId)
-        ? prev.filter((id) => id !== place.placeId)
-        : [...prev, place.placeId];
-      try {
-        localStorage.setItem("yatrik_saved_places", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    try {
+      const stored = localStorage.getItem("yatrik_saved_places");
+      let list = stored ? JSON.parse(stored) : [];
+      const exists = list.some((p: any) => (p.placeId || p.id) === place.placeId);
+
+      if (exists) {
+        list = list.filter((p: any) => (p.placeId || p.id) !== place.placeId);
+      } else {
+        list.push({
+          id: place.placeId,
+          placeId: place.placeId,
+          name: place.name,
+          address: place.address,
+          category: place.category,
+          rating: place.rating,
+          photoUrl: place.photos?.[0],
+          photos: place.photos,
+          summary: place.summary,
+          latitude: place.latitude,
+          longitude: place.longitude,
+          hiddenGemEvaluation: place.hiddenGemEvaluation,
+          savedAt: new Date().toISOString(),
+        });
+      }
+
+      localStorage.setItem("yatrik_saved_places", JSON.stringify(list));
+      setSavedPlaceIds(list.map((p: any) => p.placeId || p.id));
+    } catch {
+      // ignore
+    }
   };
 
-  // Fetch places from GET /api/explore
+  // Fetch explore places dynamically
   const fetchPlaces = useCallback(
-    async (pageNum = 1, append = false) => {
-      if (pageNum === 1) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
+    async (targetPage = 1, append = false) => {
+      if (targetPage === 1) setIsLoading(true);
+      else setIsLoadingMore(true);
+
       setError(null);
 
       try {
         const params = new URLSearchParams({
-          lat: currentLocation.latitude.toString(),
-          lng: currentLocation.longitude.toString(),
-          destination: currentLocation.name,
-          radius: (radiusKm * 1000).toString(),
+          lat: String(currentLocation.latitude),
+          lng: String(currentLocation.longitude),
+          radius: String(radiusKm),
           category: activeCategory,
           sort: sortBy,
-          page: pageNum.toString(),
+          page: String(targetPage),
           limit: "20",
+          destination: currentLocation.name,
         });
 
         if (searchQuery.trim()) {
-          params.append("query", searchQuery.trim());
+          params.set("q", searchQuery.trim());
         }
         if (minRating > 0) {
-          params.append("minRating", minRating.toString());
+          params.set("minRating", String(minRating));
         }
         if (openNowOnly) {
-          params.append("openNow", "true");
+          params.set("openNow", "true");
         }
         if (priceFilter !== "all") {
-          params.append("priceLevel", priceFilter);
+          params.set("priceLevel", priceFilter);
         }
 
         const res = await fetch(`/api/explore?${params.toString()}`);
         if (!res.ok) {
-          throw new Error(`Failed to load places (${res.status})`);
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Failed to fetch places (${res.status})`);
         }
 
         const data: ExploreResponse = await res.json();
@@ -163,9 +183,10 @@ export default function ExplorePage() {
         } else {
           setPlaces(data.places);
         }
-        setTotalCount(data.total);
+
+        setTotalCount(data.total ?? 0);
         setHasMore(data.hasMore);
-        setPage(pageNum);
+        setPage(targetPage);
       } catch (err: any) {
         console.error("Error fetching explore places:", err);
         setError(err.message || "Failed to retrieve real places");
@@ -211,77 +232,112 @@ export default function ExplorePage() {
 
   return (
     <div className="space-y-8 pb-20">
-      {/* Editorial Header & Search Banner */}
-      <div className="space-y-6 text-center max-w-4xl mx-auto pt-4 px-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-300 text-[11px] font-extrabold uppercase tracking-widest animate-float">
-          <Sparkles className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
+      {/* 1. Centerpiece Travel Hero Section */}
+      <div className="space-y-6 text-center max-w-4xl mx-auto pt-6 px-4">
+        {/* Travel Intelligence Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#14B8A6]/15 border border-[#14B8A6]/30 text-[#38BDF8] text-[11px] font-extrabold uppercase tracking-widest animate-float shadow-[0_0_15px_rgba(20,184,166,0.25)]">
+          <Compass className="w-3.5 h-3.5 text-[#14B8A6] animate-pulse" />
           <span>Global Real-Time Discovery Engine</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-none">
-          Explore Any Destination & <br />
-          <span className="text-gradient">Real Hidden Gems</span>
+        {/* Editorial Heading */}
+        <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+          Where will you <br className="hidden sm:inline" />
+          <span className="text-gradient-ocean">explore next?</span>
         </h1>
 
-        <p className="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl mx-auto">
-          Search anywhere on Earth. Powered by real live POI data, Google Places New, and YATRIK’s
-          intelligent Hidden Gem ranking algorithms.
+        {/* Subtitle */}
+        <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
+          Discover places worth remembering. Search any city, landmark, or hidden gem with real-time POI data.
         </p>
 
-        {/* Global Location Autocomplete Search Box */}
-        <div className="max-w-2xl mx-auto text-left">
-          <label className="block text-xs font-semibold text-gray-400 mb-2 flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-indigo-400" />
+        {/* Large Destination Search Bar */}
+        <div className="max-w-2xl mx-auto text-left space-y-2">
+          <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-[#14B8A6]" />
             <span>Search Any Location Worldwide:</span>
           </label>
           <MapboxSearchBox
             onLocationSelect={handleLocationSelect}
-            placeholder="Type any city, attraction, address (e.g. Paris, Tokyo, Bhubaneswar, Koraput)..."
+            placeholder="Search a city, landmark, hidden gem..."
             defaultValue={currentLocation.formattedAddress}
             className="w-full shadow-2xl"
           />
         </div>
+
+        {/* Popular Categories: Rounded Travel Chips below search */}
+        <div className="pt-2">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+            Popular Travel Categories
+          </p>
+          <div className="flex items-center justify-center flex-wrap gap-2 max-w-3xl mx-auto">
+            {EXPLORE_CATEGORIES.slice(0, 8).map((cat) => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                      ? "bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white shadow-[0_0_15px_rgba(20,184,166,0.35)] border border-[#38BDF8] scale-105"
+                      : "bg-[#071A2B]/80 text-slate-300 hover:text-white border border-[#0E7490]/30 hover:border-[#14B8A6]/50 hover:bg-[#0E7490]/15"
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Floating Active Location Badge */}
-      <div className="max-w-4xl mx-auto px-4 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl glass-panel border border-white/10 bg-[#090d16]/80 text-xs">
-        <div className="flex items-center gap-2 text-gray-300">
-          <MapPin className="w-4 h-4 text-indigo-400 shrink-0" />
-          <span>
-            Exploring around:{" "}
-            <strong className="text-white font-bold">{currentLocation.name}</strong>{" "}
-            <span className="text-gray-400">({currentLocation.region || currentLocation.country})</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 font-bold text-[11px]">
-            {totalCount} Real Places Found
-          </span>
-          <button
-            onClick={() => fetchPlaces(1, false)}
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-            title="Refresh Places"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
+      {/* 2. Floating Active Location Card */}
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-[#0E7490]/25 bg-[#071A2B]/80 text-xs shadow-lg">
+          <div className="flex items-center gap-2.5 text-slate-300">
+            <div className="w-7 h-7 rounded-lg bg-[#0E7490]/25 border border-[#14B8A6]/30 flex items-center justify-center text-[#14B8A6] shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <span>
+              Exploring around:{" "}
+              <strong className="text-white font-bold text-sm">{currentLocation.name}</strong>{" "}
+              <span className="text-slate-400">
+                ({currentLocation.region || currentLocation.country})
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <span className="px-3 py-1 rounded-xl bg-[#0E7490]/25 border border-[#14B8A6]/35 text-[#38BDF8] font-bold text-[11px]">
+              {totalCount} Real Places Discovered
+            </span>
+            <button
+              onClick={() => fetchPlaces(1, false)}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-[#0E7490]/25 transition-colors"
+              title="Refresh Places"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#14B8A6]" : ""}`} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Natural Search & Quick Filter Bar */}
+      {/* 3. Search Bar, Sort, View Controls */}
       <div className="max-w-7xl mx-auto px-4 space-y-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-          {/* Natural language query input */}
+          {/* Natural Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder='Try "hidden gems in Bhubaneswar", "secret cafes", "scenic viewpoints"...'
+              placeholder='Try "scenic viewpoints", "artisan cafes", "hidden trails"...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") fetchPlaces(1, false);
               }}
-              className="w-full pl-10 pr-24 py-3 rounded-2xl text-xs glass-input focus:ring-1 focus:ring-indigo-500 border border-white/10 bg-[#090d16]/80 text-white placeholder-gray-500"
+              className="w-full pl-10 pr-24 py-3 rounded-2xl text-xs glass-input focus:ring-1 focus:ring-[#14B8A6] border border-[#0E7490]/25 bg-[#030F1A]/70 text-white placeholder-slate-400"
             />
             {searchQuery && (
               <button
@@ -289,14 +345,14 @@ export default function ExplorePage() {
                   setSearchQuery("");
                   fetchPlaces(1, false);
                 }}
-                className="absolute right-14 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 hover:text-white"
+                className="absolute right-16 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-white"
               >
                 Clear
               </button>
             )}
             <button
               onClick={() => fetchPlaces(1, false)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] hover:from-[#0E7490]/90 hover:to-[#14B8A6]/90 text-white text-[11px] font-bold shadow-[0_0_10px_rgba(20,184,166,0.3)] transition-all"
             >
               Search
             </button>
@@ -308,7 +364,7 @@ export default function ExplorePage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="appearance-none pl-8 pr-8 py-3 rounded-2xl bg-[#090d16]/90 border border-white/10 text-xs font-bold text-gray-200 focus:outline-none focus:border-indigo-500"
+                className="appearance-none pl-8 pr-8 py-3 rounded-2xl bg-[#071A2B] border border-[#0E7490]/30 text-xs font-bold text-slate-200 focus:outline-none focus:border-[#14B8A6]"
               >
                 <option value="hidden_gem">Sort: YATRIK Hidden Gem Score</option>
                 <option value="recommended">Sort: Recommended</option>
@@ -317,8 +373,8 @@ export default function ExplorePage() {
                 <option value="popularity">Sort: Most Reviews</option>
                 <option value="price">Sort: Price Level</option>
               </select>
-              <ArrowUpDown className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Filter Toggle Button */}
@@ -326,8 +382,8 @@ export default function ExplorePage() {
               onClick={() => setShowFiltersModal(!showFiltersModal)}
               className={`px-3.5 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
                 showFiltersModal || minRating > 0 || openNowOnly || priceFilter !== "all"
-                  ? "bg-indigo-600/30 border-indigo-500/50 text-indigo-300"
-                  : "bg-[#090d16]/80 border-white/10 text-gray-300 hover:text-white"
+                  ? "bg-[#0E7490]/30 border-[#14B8A6]/50 text-[#38BDF8]"
+                  : "bg-[#071A2B] border-[#0E7490]/30 text-slate-300 hover:text-white"
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -335,13 +391,13 @@ export default function ExplorePage() {
             </button>
 
             {/* View Mode Toggle (Grid vs Split Map) */}
-            <div className="hidden lg:flex items-center rounded-2xl border border-white/10 bg-[#090d16]/80 p-1">
+            <div className="hidden lg:flex items-center rounded-2xl border border-[#0E7490]/30 bg-[#071A2B] p-1">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                   viewMode === "grid"
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white shadow-[0_0_10px_rgba(20,184,166,0.25)]"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 Grid
@@ -350,8 +406,8 @@ export default function ExplorePage() {
                 onClick={() => setViewMode("split")}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                   viewMode === "split"
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white shadow-[0_0_10px_rgba(20,184,166,0.25)]"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 Map Split
@@ -362,12 +418,12 @@ export default function ExplorePage() {
 
         {/* Collapsible Filter Panel */}
         {showFiltersModal && (
-          <div className="p-4 rounded-2xl glass-panel border border-white/10 bg-[#090d16]/95 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-150">
+          <div className="p-4 rounded-2xl glass-panel border border-[#0E7490]/30 bg-[#071A2B]/95 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-150">
             {/* Radius Filter */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-300 flex justify-between">
+              <label className="text-xs font-bold text-slate-300 flex justify-between">
                 <span>Search Radius</span>
-                <span className="text-indigo-400">{radiusKm} km</span>
+                <span className="text-[#38BDF8]">{radiusKm} km</span>
               </label>
               <input
                 type="range"
@@ -376,32 +432,36 @@ export default function ExplorePage() {
                 step="1"
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="w-full accent-indigo-500 cursor-pointer"
+                className="w-full accent-[#14B8A6] cursor-pointer"
               />
             </div>
 
-            {/* Minimum Rating */}
+            {/* Min Rating Filter */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-300">Min Rating</label>
-              <select
+              <label className="text-xs font-bold text-slate-300 flex justify-between">
+                <span>Min Rating</span>
+                <span className="text-[#FBBF24]">
+                  {minRating > 0 ? `★ ${minRating.toFixed(1)}+` : "Any"}
+                </span>
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="4.5"
+                step="0.5"
                 value={minRating}
                 onChange={(e) => setMinRating(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white"
-              >
-                <option value="0">Any Rating</option>
-                <option value="4.0">⭐ 4.0 & above</option>
-                <option value="4.5">⭐ 4.5 & above (Top Rated)</option>
-                <option value="4.8">⭐ 4.8 & above (Exceptional)</option>
-              </select>
+                className="w-full accent-[#F59E0B] cursor-pointer"
+              />
             </div>
 
-            {/* Price Filter */}
+            {/* Price Level */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-300">Price Level</label>
+              <label className="text-xs font-bold text-slate-300">Price Level</label>
               <select
                 value={priceFilter}
                 onChange={(e) => setPriceFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#030F1A] border border-[#0E7490]/30 text-xs text-white"
               >
                 <option value="all">All Prices</option>
                 <option value="PRICE_LEVEL_INEXPENSIVE">$ / ₹ (Budget)</option>
@@ -412,12 +472,12 @@ export default function ExplorePage() {
 
             {/* Open Now Toggle */}
             <div className="flex items-center justify-between sm:justify-center gap-3 pt-4">
-              <label className="text-xs font-bold text-gray-300 cursor-pointer flex items-center gap-2">
+              <label className="text-xs font-bold text-slate-300 cursor-pointer flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={openNowOnly}
                   onChange={(e) => setOpenNowOnly(e.target.checked)}
-                  className="rounded accent-indigo-500 w-4 h-4 cursor-pointer"
+                  className="rounded accent-[#14B8A6] w-4 h-4 cursor-pointer"
                 />
                 <span>Open Now Only</span>
               </label>
@@ -428,7 +488,7 @@ export default function ExplorePage() {
                   setOpenNowOnly(false);
                   setPriceFilter("all");
                 }}
-                className="text-xs text-gray-400 hover:text-white underline underline-offset-4"
+                className="text-xs text-slate-400 hover:text-white underline underline-offset-4"
               >
                 Reset
               </button>
@@ -436,7 +496,7 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* 22 Dynamic Category Badges Scroller */}
+        {/* All Dynamic Categories Scroller */}
         <div className="flex items-center gap-2 overflow-x-auto py-2 custom-scrollbar">
           {EXPLORE_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -444,10 +504,10 @@ export default function ExplorePage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all shrink-0 flex items-center gap-1.5 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 via-pink-600 to-amber-600 text-white shadow-glow border border-indigo-500/30 scale-105"
-                    : "bg-[#090d16]/80 text-gray-400 hover:text-white border border-white/10 hover:border-white/20"
+                    ? "bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white shadow-[0_0_12px_rgba(20,184,166,0.35)] border border-[#38BDF8] scale-105"
+                    : "bg-[#071A2B]/85 text-slate-400 hover:text-white border border-[#0E7490]/25 hover:border-[#14B8A6]/40"
                 }`}
               >
                 <span>{cat.icon}</span>
@@ -458,7 +518,7 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* Main Content Area (Grid or Split View) */}
+      {/* 4. Main Content Area (Grid or Split View) */}
       <div className="max-w-7xl mx-auto px-4">
         {isLoading ? (
           /* Loading Skeletons */
@@ -466,35 +526,35 @@ export default function ExplorePage() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-2xl glass-panel border border-white/5 p-4 space-y-3 animate-pulse bg-white/5"
+                className="rounded-2xl glass-panel border border-[#0E7490]/20 p-4 space-y-3 animate-pulse bg-[#071A2B]/60"
               >
-                <div className="h-44 bg-white/10 rounded-xl" />
-                <div className="h-4 bg-white/10 rounded w-3/4" />
-                <div className="h-3 bg-white/10 rounded w-1/2" />
-                <div className="h-8 bg-white/10 rounded" />
+                <div className="h-44 bg-white/5 rounded-xl" />
+                <div className="h-4 bg-white/5 rounded w-3/4" />
+                <div className="h-3 bg-white/5 rounded w-1/2" />
+                <div className="h-8 bg-white/5 rounded" />
               </div>
             ))}
           </div>
         ) : error ? (
           /* Error State */
-          <div className="p-12 text-center glass-panel border border-white/10 rounded-3xl max-w-lg mx-auto space-y-4">
-            <Eye className="w-12 h-12 text-rose-500 mx-auto" />
+          <div className="p-12 text-center glass-panel border border-[#0E7490]/25 rounded-3xl max-w-lg mx-auto space-y-4 bg-[#071A2B]/90">
+            <Eye className="w-12 h-12 text-rose-400 mx-auto" />
             <h3 className="text-lg font-bold text-white">Discovery Unavailable</h3>
-            <p className="text-xs text-gray-400">{error}</p>
+            <p className="text-xs text-slate-400">{error}</p>
             <button
               onClick={() => fetchPlaces(1, false)}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white text-xs font-bold transition-all shadow-[0_0_12px_rgba(20,184,166,0.3)]"
             >
               Retry
             </button>
           </div>
         ) : places.length === 0 ? (
           /* Empty State */
-          <div className="p-12 text-center glass-panel border border-white/10 rounded-3xl max-w-lg mx-auto space-y-4">
-            <Compass className="w-12 h-12 text-gray-600 mx-auto animate-pulse" />
+          <div className="p-12 text-center glass-panel border border-[#0E7490]/25 rounded-3xl max-w-lg mx-auto space-y-4 bg-[#071A2B]/90">
+            <Compass className="w-12 h-12 text-slate-500 mx-auto animate-pulse" />
             <h3 className="text-lg font-bold text-white">No Places Found</h3>
-            <p className="text-xs text-gray-400">
-              No matching locations found for {currentLocation.name} in category &quot;
+            <p className="text-xs text-slate-400">
+              No matching destinations found for {currentLocation.name} in category &quot;
               {activeCategory}&quot;. Try broadening your radius or switching category.
             </p>
             <button
@@ -503,7 +563,7 @@ export default function ExplorePage() {
                 setSearchQuery("");
                 setRadiusKm(30);
               }}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white text-xs font-bold transition-all shadow-[0_0_12px_rgba(20,184,166,0.3)]"
             >
               Reset to All Places
             </button>
@@ -528,7 +588,7 @@ export default function ExplorePage() {
                   <button
                     onClick={() => fetchPlaces(page + 1, true)}
                     disabled={isLoadingMore}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] text-white text-xs font-bold shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all"
                   >
                     {isLoadingMore ? "Loading..." : "Load More Places"}
                   </button>
@@ -536,7 +596,7 @@ export default function ExplorePage() {
               )}
             </div>
 
-            <div className="lg:col-span-6 sticky top-24 h-[80vh] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+            <div className="lg:col-span-6 sticky top-24 h-[80vh] rounded-3xl overflow-hidden border border-[#0E7490]/30 shadow-2xl">
               <MapboxMapContainer
                 center={{ lat: currentLocation.latitude, lng: currentLocation.longitude }}
                 zoom={12}
@@ -571,7 +631,7 @@ export default function ExplorePage() {
                 <button
                   onClick={() => fetchPlaces(page + 1, true)}
                   disabled={isLoadingMore}
-                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white text-sm font-bold shadow-glow border border-indigo-500/30 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] hover:from-[#0E7490]/90 hover:to-[#14B8A6]/90 text-white text-sm font-bold shadow-[0_0_20px_rgba(20,184,166,0.3)] border border-[#38BDF8]/40 transition-all disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
                 >
                   {isLoadingMore ? (
                     <>

@@ -49,23 +49,23 @@ export function Sidebar({
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 h-screen z-40 bg-[#090d16]/95 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between transition-all duration-300 ease-in-out select-none ${
+      className={`fixed left-0 top-0 bottom-0 h-screen z-40 bg-[#071A2B]/95 backdrop-blur-2xl border-r border-[#0E7490]/25 flex flex-col justify-between transition-all duration-300 ease-in-out select-none ${
         isCollapsed ? "w-[72px]" : "w-[260px]"
       }`}
       aria-label="Application Sidebar"
     >
       {/* 1. Header / Brand & Collapse Toggle */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-[#0E7490]/20 flex items-center justify-between shrink-0">
         <Link
           href="/"
           onClick={onLinkClick}
           className="flex items-center gap-3 group overflow-hidden"
-          title="YATRIK - Home"
+          title="YATRIK - Plan Smart • Travel Safe"
         >
           {/* Logo container */}
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-[1.5px] shadow-glow shrink-0 group-hover:scale-105 transition-transform duration-300">
-            <div className="w-full h-full bg-[#090d16] rounded-[10px] flex items-center justify-center">
-              <Compass className="w-5 h-5 text-indigo-400 group-hover:rotate-45 transition-transform duration-500" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0E7490] via-[#14B8A6] to-[#38BDF8] p-[1.5px] shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0 group-hover:scale-105 transition-transform duration-300">
+            <div className="w-full h-full bg-[#071A2B] rounded-[10px] flex items-center justify-center">
+              <Compass className="w-5 h-5 text-[#14B8A6] group-hover:rotate-45 transition-transform duration-500" />
             </div>
           </div>
 
@@ -73,11 +73,11 @@ export function Sidebar({
             <div className="flex-1 overflow-hidden text-left">
               <span className="text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5 leading-none">
                 YATRIK
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 font-extrabold border border-indigo-500/25">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#14B8A6]/15 text-[#38BDF8] font-extrabold border border-[#14B8A6]/30">
                   AI
                 </span>
               </span>
-              <p className="text-[10px] text-gray-400 font-medium tracking-wide mt-1 truncate">
+              <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-1 truncate">
                 Plan Smart • Travel Safe
               </p>
             </div>
@@ -88,7 +88,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className={`hidden md:flex p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5 transition-colors shrink-0 ${
+          className={`hidden md:flex p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-[#0E7490]/20 transition-colors shrink-0 ${
             isCollapsed ? "mx-auto mt-2" : ""
           }`}
           title={isCollapsed ? "Expand sidebar (260px)" : "Collapse sidebar (72px)"}
@@ -108,21 +108,21 @@ export function Sidebar({
       </div>
 
       {/* 3. Bottom Section: Rewards, SOS Emergency & User Profile */}
-      <div className="p-3 border-t border-white/5 space-y-2.5 bg-[#060911]/80 shrink-0">
+      <div className="p-3 border-t border-[#0E7490]/20 space-y-2.5 bg-[#030F1A]/85 shrink-0">
         {/* Rewards / Points Indicator */}
         <Link
           href="/rewards"
           onClick={onLinkClick}
           title={isCollapsed ? `Rewards: ${INITIAL_USER.coins} pts` : undefined}
-          className={`flex items-center gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 text-amber-300 transition-all ${
+          className={`flex items-center gap-2.5 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/10 hover:bg-[#F59E0B]/15 text-[#FBBF24] transition-all ${
             isCollapsed ? "justify-center p-2.5" : "px-3.5 py-2.5"
           }`}
         >
-          <Coins className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+          <Coins className="w-4 h-4 text-[#FBBF24] animate-bounce shrink-0" />
           {!isCollapsed && (
             <div className="flex-1 flex items-center justify-between text-xs">
-              <span className="font-semibold text-gray-300">Rewards</span>
-              <span className="font-extrabold text-amber-400">
+              <span className="font-semibold text-slate-300">Rewards</span>
+              <span className="font-extrabold text-[#FBBF24]">
                 {INITIAL_USER.coins.toLocaleString()} pts
               </span>
             </div>
@@ -134,20 +134,20 @@ export function Sidebar({
           href="/safety"
           onClick={onLinkClick}
           title={isCollapsed ? "SOS EMERGENCY" : undefined}
-          className={`flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-600/30 via-red-600/20 to-rose-600/30 hover:from-rose-600/40 hover:to-rose-600/40 border border-rose-500/40 text-rose-200 shadow-glow-rose transition-all group ${
+          className={`flex items-center gap-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/35 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.15)] transition-all group ${
             isCollapsed ? "justify-center p-2.5" : "px-3.5 py-2.5"
           }`}
         >
           <ShieldCheck className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform shrink-0" />
           {!isCollapsed && (
-            <span className="text-xs font-black tracking-wider uppercase text-rose-300">
-              🛡 SOS EMERGENCY
+            <span className="text-xs font-bold tracking-wider uppercase text-rose-300">
+              🛡 SOS Emergency
             </span>
           )}
         </Link>
 
         {/* User Profile / Auth Area */}
-        <div className="pt-1.5 border-t border-white/5">
+        <div className="pt-1.5 border-t border-[#0E7490]/20">
           {!isLoaded ? (
             <div className="flex items-center gap-2.5 p-2 animate-pulse">
               <div className="w-8 h-8 rounded-full bg-white/10" />
@@ -155,7 +155,7 @@ export function Sidebar({
             </div>
           ) : isSignedIn ? (
             <div
-              className={`flex flex-col gap-2 rounded-xl bg-white/[0.03] border border-white/5 ${
+              className={`flex flex-col gap-2 rounded-xl bg-[#071A2B]/60 border border-[#0E7490]/20 ${
                 isCollapsed ? "p-1.5 items-center" : "p-2.5"
               }`}
             >
@@ -168,7 +168,7 @@ export function Sidebar({
                 <img
                   src={displayAvatar}
                   alt={displayName}
-                  className="w-8 h-8 rounded-full object-cover ring-1 ring-indigo-500/30 shrink-0"
+                  className="w-8 h-8 rounded-full object-cover ring-1 ring-[#14B8A6]/40 shrink-0"
                 />
 
                 {!isCollapsed && (
@@ -183,7 +183,7 @@ export function Sidebar({
                         className={`text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded ${
                           isAdmin
                             ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                            : "bg-indigo-500/15 text-indigo-300"
+                            : "bg-[#14B8A6]/15 text-[#38BDF8] border border-[#14B8A6]/25"
                         }`}
                       >
                         {isAdmin ? "Admin" : "Explorer"}
@@ -195,11 +195,11 @@ export function Sidebar({
 
               {/* Profile / Settings & Logout links */}
               {!isCollapsed && (
-                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] text-gray-400">
+                <div className="flex items-center justify-between pt-1.5 border-t border-[#0E7490]/20 text-[10px] text-slate-400">
                   <Link
                     href="/profile"
                     onClick={onLinkClick}
-                    className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
+                    className="flex items-center gap-1 hover:text-[#38BDF8] transition-colors"
                   >
                     <Settings className="w-3 h-3" />
                     <span>Settings</span>
@@ -233,7 +233,7 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => signOut({ redirectUrl: "/" })}
-                  className="p-1 rounded text-gray-400 hover:text-rose-400 transition-colors"
+                  className="p-1 rounded text-slate-400 hover:text-rose-400 transition-colors"
                   title="Log out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -246,14 +246,14 @@ export function Sidebar({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2">
                   <SignInButton mode="modal">
-                    <button className="flex-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
-                      <LogIn className="w-3.5 h-3.5 text-indigo-400" />
+                    <button className="flex-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-[#0E7490]/30 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                      <LogIn className="w-3.5 h-3.5 text-[#38BDF8]" />
                       <span>Login</span>
                     </button>
                   </SignInButton>
 
                   <SignUpButton mode="modal">
-                    <button className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-glow transition-all flex items-center justify-center gap-1.5">
+                    <button className="flex-1 px-3 py-2 rounded-xl bg-gradient-to-r from-[#0E7490] to-[#14B8A6] hover:from-[#0E7490]/90 hover:to-[#14B8A6]/90 text-white text-xs font-bold shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all flex items-center justify-center gap-1.5">
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>Join</span>
                     </button>
@@ -262,7 +262,7 @@ export function Sidebar({
               ) : (
                 <SignInButton mode="modal">
                   <button
-                    className="w-full p-2 rounded-xl bg-white/5 hover:bg-white/10 text-indigo-400 flex items-center justify-center"
+                    className="w-full p-2 rounded-xl bg-white/5 hover:bg-white/10 text-[#38BDF8] flex items-center justify-center"
                     title="Login"
                   >
                     <LogIn className="w-4 h-4" />
