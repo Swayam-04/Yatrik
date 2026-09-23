@@ -16,7 +16,13 @@ import {
   Copy,
   Check,
   Zap,
-  PhoneCall
+  Trash2,
+  Compass,
+  Shield,
+  MapPin,
+  ChevronRight,
+  MessageSquare,
+  Maximize2,
 } from "lucide-react";
 import { useAuthModal } from "@/components/auth/AuthModalContext";
 
@@ -37,8 +43,8 @@ export function FloatingAiChatbot() {
     {
       id: "1",
       sender: "ai",
-      text: "👋 Hi! I am **YATRIK AI Assistant** powered by Groq. How can I help you plan your journey today?",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text: "👋 Hi! I am **YATRIK AI Assistant** powered by Groq & Gemma 4.\n\nAsk me about secret spots, personalized travel itineraries, local food, or verified women safety routes!",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
   const [input, setInput] = useState("");
@@ -62,9 +68,20 @@ export function FloatingAiChatbot() {
     setMounted(true);
   }, []);
 
+  // Listen for Escape key to close the sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   // Check AI Health
   const checkHealth = async () => {
-    setGroqStatus(prev => ({ ...prev, checking: true }));
+    setGroqStatus((prev) => ({ ...prev, checking: true }));
     try {
       const res = await fetch("/api/ai/status");
       if (res.ok) {
@@ -73,21 +90,21 @@ export function FloatingAiChatbot() {
           isOnline: Boolean(data.online ?? data.isOnline),
           checking: false,
           model: data.model,
-          error: data.error
+          error: data.error,
         });
       } else {
         const data = await res.json().catch(() => ({}));
         setGroqStatus({
           isOnline: false,
           checking: false,
-          error: data.error || "AI Service Unavailable"
+          error: data.error || "AI Service Unavailable",
         });
       }
     } catch {
       setGroqStatus({
         isOnline: false,
         checking: false,
-        error: "Network Error"
+        error: "Network Error",
       });
     }
   };
@@ -110,6 +127,17 @@ export function FloatingAiChatbot() {
     setIsTyping(false);
   };
 
+  const handleClearChat = () => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        sender: "ai",
+        text: "✨ Chat cleared. How can I assist with your next trip?",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      },
+    ]);
+  };
+
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -126,7 +154,7 @@ export function FloatingAiChatbot() {
       id: Date.now().toString(),
       sender: "user",
       text: query,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -138,7 +166,7 @@ export function FloatingAiChatbot() {
       id: aiMsgId,
       sender: "ai",
       text: "",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, initialAiMsg]);
 
@@ -148,9 +176,9 @@ export function FloatingAiChatbot() {
     const startTime = performance.now();
 
     try {
-      const conversationHistory = [...messages, userMsg].map(m => ({
-        role: m.sender === 'user' ? 'user' : 'assistant',
-        content: m.text
+      const conversationHistory = [...messages, userMsg].map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
       }));
 
       const response = await fetch("/api/ai/chat", {
@@ -203,15 +231,15 @@ export function FloatingAiChatbot() {
           prev.map((msg) =>
             msg.id === aiMsgId
               ? {
-                ...msg,
-                text: "I am ready to assist with your YATRIK travel plans! How else can I help?",
-              }
+                  ...msg,
+                  text: "I am ready to assist with your YATRIK travel plans! How else can I help?",
+                }
               : msg
           )
         );
       }
     } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === aiMsgId
@@ -225,10 +253,10 @@ export function FloatingAiChatbot() {
           prev.map((msg) =>
             msg.id === aiMsgId
               ? {
-                ...msg,
-                isError: true,
-                text: `⚠️ **${errText}**\n\nPlease check your configuration or try again.`,
-              }
+                  ...msg,
+                  isError: true,
+                  text: `⚠️ **${errText}**\n\nPlease check your configuration or try again.`,
+                }
               : msg
           )
         );
@@ -246,203 +274,274 @@ export function FloatingAiChatbot() {
   };
 
   const samplePrompts = [
-    { label: "Manali Secrets", query: "What are the top secret cafes in Manali?" },
-    { label: "Jaipur Safety Check", query: "Jaipur safety guide for solo girls?" },
-    { label: "Kerala 4-day Budget", query: "4-day budget route in Kerala under 10k?" },
+    { label: "Hidden Gems", icon: "✨", query: "What are top uncrowded hidden gems in Bhubaneswar?" },
+    { label: "Solo Women Safety", icon: "🛡️", query: "Give me safe travel tips and safe areas for solo women travelers." },
+    { label: "Manali Cafes", icon: "☕", query: "What are the coziest secret cafes in Old Manali with mountain views?" },
+    { label: "Budget 4-Day Plan", icon: "💰", query: "Plan a 4-day budget route under ₹12,000 including food and stays." },
   ];
 
   if (!mounted) return null;
 
   return (
     <>
-      {/* Floating Action Trigger Button */}
+      {/* Floating Action Trigger Button (Opens Sidebar) */}
       <button
-        onClick={() => requireAuth(() => setIsOpen(!isOpen))}
-        className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-glow hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 group"
-        title="Chat with AI Assistant"
+        onClick={() => requireAuth(() => setIsOpen(true))}
+        className={`fixed bottom-6 right-6 z-40 p-3.5 sm:px-4 sm:py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-glow hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2.5 group ${
+          isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+        title="Open YATRIK AI Sidebar"
+        aria-label="Open AI Travel Assistant"
       >
         <div className="relative">
           <Bot className="w-5 h-5 text-white group-hover:rotate-12 transition-transform" />
-          <span className={`absolute -top-1 -right-1 w-2 h-2 rounded-full border-2 border-[#090d16] ${groqStatus.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+          <span
+            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#090d16] ${
+              groqStatus.isOnline ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+            }`}
+          />
         </div>
 
-        <span className="font-extrabold text-[10px] uppercase tracking-wider hidden sm:inline">AI Guide</span>
+        <div className="hidden sm:flex flex-col text-left">
+          <span className="font-extrabold text-[11px] uppercase tracking-wider leading-none">
+            AI Assistant
+          </span>
+          <span className="text-[9px] text-indigo-200 font-medium">Groq & Gemma 4</span>
+        </div>
       </button>
 
-      {/* Floating Chat Modal Panel */}
+      {/* Backdrop Overlay */}
       {isOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[92vw] sm:w-[380px] h-[520px] max-h-[75vh] glass-panel rounded-3xl border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Header Bar */}
-          <div className="p-4 border-b border-white/5 bg-[#090d16]/95 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 p-0.5 shadow-glow">
-                <div className="w-full h-full bg-[#030712] rounded-[10px] flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-indigo-400 animate-pulse" />
-                </div>
+      {/* Slide-out AI Assistant Sidebar */}
+      <aside
+        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[440px] md:w-[480px] bg-[#090d16]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
+        }`}
+        aria-label="YATRIK AI Sidebar"
+      >
+        {/* Sidebar Header */}
+        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#060911]/90 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-glow shrink-0">
+              <div className="w-full h-full bg-[#030712] rounded-[14px] flex items-center justify-center">
+                <Bot className="w-5 h-5 text-indigo-400 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="text-left">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-white tracking-tight">
+                  YATRIK AI Assistant
+                </h3>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30 font-bold uppercase tracking-wider">
+                  Sidebar
+                </span>
               </div>
 
-              <div className="text-left">
-                <h3 className="text-xs font-extrabold text-white flex items-center gap-1">
-                  YATRIK AI
-                  <Link href="/assistant" className="text-[8px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/25 hover:bg-indigo-500/25 flex items-center gap-0.5">
-                    Full <ExternalLink className="w-2 h-2" />
-                  </Link>
-                </h3>
+              {/* Status & Model Info */}
+              <div className="text-[10px] mt-0.5 flex items-center gap-2 font-medium">
+                {groqStatus.checking ? (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Connecting to AI...
+                  </span>
+                ) : groqStatus.isOnline ? (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                    <span>Active ({groqStatus.model || "Groq LLM"})</span>
+                  </span>
+                ) : (
+                  <span className="text-amber-400 flex items-center gap-1" title={groqStatus.error}>
+                    <AlertTriangle className="w-2.5 h-2.5" />
+                    <span>{groqStatus.error || "Standby Mode"}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
 
-                <div className="text-[9px] mt-0.5 flex items-center gap-1 font-bold">
-                  {groqStatus.checking ? (
-                    <span className="text-amber-400 flex items-center gap-1">
-                      <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Syncing...
-                    </span>
-                  ) : groqStatus.isOnline ? (
-                    <span className="text-emerald-400 flex items-center gap-0.5">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> Groq Active
-                    </span>
-                  ) : (
-                    <span className="text-amber-400 flex items-center gap-0.5" title={groqStatus.error}>
-                      <AlertTriangle className="w-2.5 h-2.5" /> {groqStatus.error || "Standby"}
+          {/* Action buttons */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleClearChat}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white transition-colors"
+              title="Clear Conversation"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+
+            <Link
+              href="/assistant"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white transition-colors"
+              title="Open Fullscreen Page"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Link>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white transition-colors ml-1"
+              title="Close Sidebar (Esc)"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Suggestions Chips Bar */}
+        <div className="px-4 py-2.5 border-b border-white/5 bg-[#090d16]/60 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-pink-400" />
+            <span>Try:</span>
+          </span>
+          {samplePrompts.map((p, i) => (
+            <button
+              key={i}
+              onClick={() => handleSend(p.query)}
+              className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-indigo-600/25 text-gray-300 hover:text-indigo-200 border border-white/10 hover:border-indigo-500/30 text-[11px] font-semibold whitespace-nowrap transition-all flex items-center gap-1"
+            >
+              <span>{p.icon}</span>
+              <span>{p.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Sidebar Messages Body */}
+        <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar bg-gradient-to-b from-[#090d16] via-[#090d16]/90 to-[#070b12]">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              {msg.sender === "ai" && (
+                <div className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center shrink-0 mt-0.5 shadow-glow-sm">
+                  <Bot className="w-4 h-4 text-indigo-400" />
+                </div>
+              )}
+
+              <div className="relative group max-w-[86%] text-left">
+                <div
+                  className={`px-4 py-3 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-sm ${
+                    msg.sender === "user"
+                      ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-tr-none font-medium"
+                      : msg.isError
+                      ? "bg-rose-500/10 text-rose-200 border border-rose-500/30 rounded-tl-none whitespace-pre-wrap"
+                      : "glass-panel bg-[#0d1527]/80 text-gray-100 border border-white/10 rounded-tl-none whitespace-pre-wrap"
+                  }`}
+                >
+                  {msg.text || (
+                    <span className="flex items-center gap-1.5 text-gray-400 italic">
+                      <Sparkles className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                      <span>Thinking and synthesizing journey insights...</span>
                     </span>
                   )}
+
+                  {msg.isError && (
+                    <button
+                      onClick={handleRetry}
+                      className="mt-3 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 flex items-center gap-1.5 transition-colors"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Retry Generation
+                    </button>
+                  )}
                 </div>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={checkHealth}
-                className="p-1 rounded hover:bg-white/5 text-gray-400 hover:text-white"
-                title="Refresh Status"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${groqStatus.checking ? 'animate-spin' : ''}`} />
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded hover:bg-white/5 text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+                {/* Message Timestamp & Copy Action */}
+                <div className="flex items-center justify-between text-[10px] text-gray-500 mt-1 px-1">
+                  <span>{msg.timestamp}</span>
 
-          {/* Quick Prompts Bar */}
-          <div className="px-3 py-2 border-b border-white/5 bg-white/[0.02] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {samplePrompts.map((p, i) => (
-              <button
-                key={i}
-                onClick={() => handleSend(p.query)}
-                className="px-2 py-0.5 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 text-[9px] font-bold whitespace-nowrap transition-colors"
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Message History list */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#090d16]/30 scrollbar-none">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {msg.sender === "ai" && (
-                  <div className="w-6 h-6 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-3.5 h-3.5 text-indigo-400" />
-                  </div>
-                )}
-
-                <div className="relative group max-w-[85%] text-left">
-                  <div
-                    className={`px-3 py-2.5 rounded-2xl text-[11px] leading-relaxed ${msg.sender === "user"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-none"
-                      : msg.isError
-                        ? "bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-tl-none whitespace-pre-wrap"
-                        : "bg-[#090d16]/80 text-gray-200 border border-white/5 rounded-tl-none whitespace-pre-wrap"
-                      }`}
-                  >
-                    {msg.text || (
-                      <span className="flex items-center gap-1 text-gray-400 italic">
-                        <Sparkles className="w-3 h-3 animate-spin text-indigo-400" /> Streaming response...
+                  <div className="flex items-center gap-2">
+                    {msg.responseTimeMs && (
+                      <span className="text-[9px] text-gray-500">
+                        ⚡ {msg.responseTimeMs}ms
                       </span>
                     )}
 
-                    {msg.isError && (
-                      <button
-                        onClick={handleRetry}
-                        className="mt-2 text-[8px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/30 flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-2.5 h-2.5" /> Retry
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between text-[8px] text-gray-500 mt-1 px-1">
-                    <span>
-                      {msg.timestamp}
-                    </span>
                     {msg.sender === "ai" && msg.text && !msg.isError && (
                       <button
                         onClick={() => handleCopy(msg.id, msg.text)}
-                        className="opacity-0 group-hover:opacity-100 hover:text-white flex items-center gap-1 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 hover:text-white flex items-center gap-1 transition-opacity text-gray-400"
                         title="Copy text"
                       >
                         {copiedId === msg.id ? (
-                          <Check className="w-2.5 h-2.5 text-emerald-400" />
+                          <span className="text-emerald-400 flex items-center gap-0.5 text-[9px] font-bold">
+                            <Check className="w-3 h-3" /> Copied
+                          </span>
                         ) : (
-                          <Copy className="w-2.5 h-2.5 text-gray-500" />
+                          <Copy className="w-3 h-3" />
                         )}
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
 
-            {isTyping && (
-              <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">
-                <span className="text-indigo-200 text-[10px] font-bold pl-1 animate-pulse">Streaming Groq tokens...</span>
+          {isTyping && (
+            <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-xs">
+              <span className="text-indigo-200 text-xs font-bold pl-1 flex items-center gap-1.5 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                <span>YATRIK AI is generating answer...</span>
+              </span>
 
-                <button
-                  onClick={handleCancel}
-                  className="px-2 py-0.5 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[9px] font-bold flex items-center gap-1"
-                >
-                  <Square className="w-2 h-2 fill-current" /> Stop
-                </button>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
+              <button
+                onClick={handleCancel}
+                className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-[10px] font-bold flex items-center gap-1 transition-colors"
+              >
+                <Square className="w-2.5 h-2.5 fill-current" /> Stop
+              </button>
+            </div>
+          )}
 
-          {/* Input Footer Form */}
-          <div className="p-3 border-t border-white/5 bg-[#090d16]/95">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-              }}
-              className="flex items-center gap-2"
-            >
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Sidebar Input Form Footer */}
+        <div className="p-4 sm:p-5 border-t border-white/10 bg-[#060911]/95 shrink-0">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative flex-1">
               <input
                 type="text"
-                placeholder="Ask about spots, safety, budgets..."
+                placeholder="Ask about places, safety routes, budgets..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isTyping}
-                className="flex-1 px-3.5 py-2.5 rounded-xl text-xs glass-input focus:outline-none focus:border-indigo-500/50 disabled:opacity-50 text-white"
+                className="w-full px-4 py-3 rounded-2xl text-xs sm:text-sm bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 disabled:opacity-50"
               />
-              <button
-                type="submit"
-                disabled={!input.trim() || isTyping}
-                className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-40 hover:scale-105 transition-transform"
-              >
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </form>
-          </div>
+            </div>
 
+            <button
+              type="submit"
+              disabled={!input.trim() || isTyping}
+              className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-glow flex items-center gap-1.5 shrink-0 font-bold text-xs"
+            >
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">Send</span>
+            </button>
+          </form>
+
+          <div className="flex items-center justify-between text-[10px] text-gray-500 mt-2 px-1">
+            <span>Powered by Groq & Gemma 4 Real Grounding</span>
+            <span className="hidden sm:inline">Press Esc to close</span>
+          </div>
         </div>
-      )}
+      </aside>
     </>
   );
 }
+
 export default FloatingAiChatbot;
+export { FloatingAiChatbot as AiSidebar };
